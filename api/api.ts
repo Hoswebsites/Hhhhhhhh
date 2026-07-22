@@ -20,13 +20,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-// Helper function to handle Supabase Edge Function calls
+// Helper function to handle Supabase Edge Function calls (تمت إضافة no-store لمنع كاش Vercel)
 async function callSupabaseEdgeFunction(url: string, payload: any, headers: any) {
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            cache: 'no-store'
         });
         
         const contentType = response.headers.get("content-type");
@@ -116,7 +117,7 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
             sound: sound,
             mode: mode,
             audio_enabled: (sound === 'on'),
-            project_id: 51 // تم التعديل ليكون رقم 51 بناءً على استجابة السيرفر
+            project_id: "slave-51"
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_ROUTER_URL, payload, headers);
@@ -138,7 +139,7 @@ app.post('/api/query-video', async (req: Request, res: Response) => {
 
         const payload = {
             action: "query",
-            task_id: taskId, // تم التعديل ليكون task_id ليتوافق مع الـ API
+            taskId: taskId,
             project_id: 51
         };
 
