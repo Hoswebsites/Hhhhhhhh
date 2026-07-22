@@ -211,6 +211,7 @@
             font-size: 13px;
             font-weight: 500;
             border-left: 3px solid;
+            word-break: break-all;
         }
 
         .status.pending {
@@ -437,8 +438,8 @@
     </div>
 
     <script>
-        // API Configuration - Now pointing to Backend instead of Supabase directly
-        const API_BASE_URL = '/api'; // Relative URL for Vercel deployment
+        // API Configuration
+        const API_BASE_URL = '/api'; 
 
         // Generate Image
         async function generateImage(e) {
@@ -466,21 +467,15 @@
 
                 const response = await fetch(`${API_BASE_URL}/generate-image`, {
                     method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
 
-                if (data.status !== 0) {
-                    throw new Error(data.message || 'Failed to generate image');
-                }
-
-                const taskId = data.data?.taskId;
+                const taskId = data.data?.taskId || data.taskId;
                 if (!taskId) {
-                    throw new Error('No task ID received');
+                    throw new Error(data.message || 'No task ID received from server');
                 }
 
                 await pollImageResult(taskId, statusDiv, contentDiv);
@@ -493,29 +488,24 @@
 
         // Poll Image Result
         async function pollImageResult(taskId, statusDiv, contentDiv, attempts = 0) {
-            if (attempts > 40) {
+            if (attempts > 60) { // تم زيادة المحاولات للصور أيضاً للأمان
                 statusDiv.innerHTML = '⏱ Timeout. Image may still be processing.';
                 statusDiv.className = 'status pending';
                 return;
             }
 
             try {
-                const payload = {
-                    taskId: taskId
-                };
-
+                const payload = { taskId: taskId };
                 const response = await fetch(`${API_BASE_URL}/query-image`, {
                     method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
-                const status = data.data?.status?.toLowerCase();
+                const status = (data.data?.status || '').toLowerCase();
 
-                if (status === 'success') {
+                if (status === 'success' || status === 'succeed') {
                     const imageUrl = data.data?.imageUrl;
                     if (imageUrl) {
                         statusDiv.innerHTML = '✓ Image generated successfully';
@@ -527,13 +517,14 @@
                         `;
                     }
                     return;
-                } else if (status === 'processing' || status === 'pending') {
-                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/40)`;
-                    statusDiv.className = 'status processing';
-                    setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 3000);
                 } else if (status === 'failed' || status === 'error') {
                     statusDiv.innerHTML = '✗ Generation failed';
                     statusDiv.className = 'status error';
+                } else {
+                    // يستمر في الفحص لأي حالة أخرى (pending, processing, الخ)
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/60)`;
+                    statusDiv.className = 'status processing';
+                    setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 3000);
                 }
             } catch (error) {
                 statusDiv.innerHTML = `✗ Error: ${error.message}`;
@@ -571,21 +562,17 @@
 
                 const response = await fetch(`${API_BASE_URL}/generate-video`, {
                     method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
 
-                if (data.code !== 0) {
-                    throw new Error(data.message || 'Failed to generate video');
-                }
-
+                // تم تحسين سحب الآي دي ليتوافق مع جميع الاحتمالات
                 const taskId = data.task_id || data.data?.task_id;
+                
                 if (!taskId) {
-                    throw new Error('No task ID received');
+                    throw new Error(data.message || 'No task ID received from server');
                 }
 
                 await pollVideoResult(taskId, statusDiv, contentDiv);
@@ -598,27 +585,25 @@
 
         // Poll Video Result
         async function pollVideoResult(taskId, statusDiv, contentDiv, attempts = 0) {
-            if (attempts > 40) {
-                statusDiv.innerHTML = '⏱ Timeout. Video may still be processing.';
+            // رفعنا عدد المحاولات لأن الفيديو يأخذ وقتاً طويلاً
+            if (attempts > 80) { 
+                statusDiv.innerHTML = '⏱ Timeout. Video is taking too long but might still be processing.';
                 statusDiv.className = 'status pending';
                 return;
             }
 
             try {
-                const payload = {
-                    taskId: taskId
-                };
-
+                const payload = { taskId: taskId };
                 const response = await fetch(`${API_BASE_URL}/query-video`, {
                     method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
-                const status = data.data?.task_status?.toLowerCase();
+                
+                // سحب الحالة بطريقة آمنة
+                const status = (data.data?.task_status || data.task_status || '').toLowerCase();
 
                 if (status === 'succeed' || status === 'success') {
                     const videoUrl = data.data?.task_result?.videos?.[0]?.url;
@@ -633,15 +618,19 @@
                             <br>
                             <a href="${videoUrl}" target="_blank" class="result-link">Download</a>
                         `;
+                    } else {
+                        statusDiv.innerHTML = '✓ Video succeeded but URL is missing';
+                        statusDiv.className = 'status error';
                     }
                     return;
-                } else if (status === 'processing' || status === 'submitted') {
-                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/40)`;
+                } else if (status === 'failed' || status === 'error') {
+                    statusDiv.innerHTML = '✗ Generation failed. Server returned an error.';
+                    statusDiv.className = 'status error';
+                } else {
+                    // هنا كان الخطأ! الآن سيستمر في الاستعلام مهما كانت الحالة (pending, processing الخ) طالما لم يفشل أو ينجح
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/80) - Status: ${status || 'Starting'}`;
                     statusDiv.className = 'status processing';
                     setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 5000);
-                } else if (status === 'failed' || status === 'error') {
-                    statusDiv.innerHTML = '✗ Generation failed';
-                    statusDiv.className = 'status error';
                 }
             } catch (error) {
                 statusDiv.innerHTML = `✗ Error: ${error.message}`;
