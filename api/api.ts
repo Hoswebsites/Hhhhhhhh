@@ -1,4 +1,3 @@
-
 import express, { Request, Response, NextFunction } from 'express';
 
 const app = express();
@@ -110,6 +109,7 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
         };
 
         const payload = {
+            action: "submit",
             prompt: prompt,
             duration: String(duration),
             aspect_ratio: aspect_ratio,
@@ -137,7 +137,8 @@ app.post('/api/query-video', async (req: Request, res: Response) => {
         };
 
         const payload = {
-            task_id: taskId,
+            action: "query",
+            taskId: taskId,
             project_id: 51
         };
 
