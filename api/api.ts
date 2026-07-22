@@ -116,7 +116,7 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
             sound: sound,
             mode: mode,
             audio_enabled: (sound === 'on'),
-            project_id: "slave-51"
+            project_id: 51 // تم التعديل ليكون رقم 51 بناءً على استجابة السيرفر
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_ROUTER_URL, payload, headers);
@@ -138,7 +138,7 @@ app.post('/api/query-video', async (req: Request, res: Response) => {
 
         const payload = {
             action: "query",
-            taskId: taskId,
+            task_id: taskId, // تم التعديل ليكون task_id ليتوافق مع الـ API
             project_id: 51
         };
 
