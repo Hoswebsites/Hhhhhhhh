@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Media Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background-color: #f5f5f5;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 30px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: #fafafa;
+            color: #1a1a1a;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #333;
+            background-color: white;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 13px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: white;
+            color: #1a1a1a;
+        }
+
+        .btn-primary {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background-color: #333;
+            border-color: #333;
+        }
+
+        .btn-primary:active {
+            background-color: #000;
+        }
+
+        .btn-primary:disabled {
+            background-color: #ccc;
+            border-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-secondary {
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+            border-color: #999;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: 500;
+            border-left: 3px solid;
+        }
+
+        .status.pending {
+            background-color: #fffbf0;
+            border-left-color: #ff9800;
+            color: #e65100;
+        }
+
+        .status.success {
+            background-color: #f1f8f4;
+            border-left-color: #4caf50;
+            color: #1b5e20;
+        }
+
+        .status.error {
+            background-color: #fef5f5;
+            border-left-color: #f44336;
+            color: #c62828;
+        }
+
+        .status.processing {
+            background-color: #f0f7ff;
+            border-left-color: #2196f3;
+            color: #0d47a1;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #ccc;
+            border-top-color: #1a1a1a;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-image,
+        .result-video {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 6px;
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .result-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 16px;
+            background-color: #1a1a1a;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color 0.2s;
+        }
+
+        .result-link:hover {
+            background-color: #333;
+        }
+
+        .info-box {
+            background-color: #f0f7ff;
+            border-left: 3px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: #0d47a1;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .spinner {
+            display: inline-block;
+            position: relative;
+            width: 14px;
+            height: 14px;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .spinner::after {
+            content: " ";
+            display: block;
+            width: 12px;
+            height: 12px;
+            margin: 1px;
+            border-radius: 50%;
+            border: 2px solid #1a1a1a;
+            border-color: #1a1a1a transparent #1a1a1a transparent;
+            animation: spinner 1.2s linear infinite;
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Media Generator</h1>
+            <p class="subtitle">Generate images and videos with artificial intelligence</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Images Section -->
+            <div class="section">
+                <h2>
+                    <span class="section-icon">🖼️</span>
+                    Image Generation
+                </h2>
+
+                <div class="info-box">
+                    Describe the image you want to generate. The AI will create it based on your description.
+                </div>
+
+                <form onsubmit="generateImage(event)">
+                    <div class="form-group">
+                        <label for="imagePrompt">Description</label>
+                        <textarea id="imagePrompt" placeholder="e.g., A serene mountain landscape at sunrise with golden light" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="imageMode">Quality</label>
+                            <select id="imageMode">
+                                <option value="pro">Professional</option>
+                                <option value="lite">Standard</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="imageCount">Count</label>
+                            <input type="number" id="imageCount" value="1" min="1" max="4">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">Generate</button>
+                        <button type="reset" class="btn-secondary">Clear</button>
+                    </div>
+                </form>
+
+                <div id="imageResult" class="result-section">
+                    <h3>Result</h3>
+                    <div id="imageStatus" class="status"></div>
+                    <div id="imageContent"></div>
+                </div>
+            </div>
+
+            <!-- Videos Section -->
+            <div class="section">
+                <h2>
+                    <span class="section-icon">🎬</span>
+                    Video Generation
+                </h2>
+
+                <div class="info-box">
+                    Describe the video you want to generate. Specify duration, aspect ratio, and other parameters.
+                </div>
+
+                <form onsubmit="generateVideo(event)">
+                    <div class="form-group">
+                        <label for="videoPrompt">Description</label>
+                        <textarea id="videoPrompt" placeholder="e.g., Ocean waves crashing on a sandy beach at sunset, cinematic" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="videoDuration">Duration (seconds)</label>
+                            <input type="number" id="videoDuration" value="5" min="1" max="60">
+                        </div>
+                        <div class="form-group">
+                            <label for="videoAspect">Aspect Ratio</label>
+                            <select id="videoAspect">
+                                <option value="16:9">16:9 (Widescreen)</option>
+                                <option value="9:16">9:16 (Portrait)</option>
+                                <option value="1:1">1:1 (Square)</option>
+                                <option value="4:3">4:3 (Standard)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="videoMode">Quality</label>
+                            <select id="videoMode">
+                                <option value="pro">Professional</option>
+                                <option value="lite">Standard</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="videoSound">Audio</label>
+                            <select id="videoSound">
+                                <option value="on">Enabled</option>
+                                <option value="off">Disabled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">Generate</button>
+                        <button type="reset" class="btn-secondary">Clear</button>
+                    </div>
+                </form>
+
+                <div id="videoResult" class="result-section">
+                    <h3>Result</h3>
+                    <div id="videoStatus" class="status"></div>
+                    <div id="videoContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration - Now pointing to Backend instead of Supabase directly
+        const API_BASE_URL = '/api'; // Relative URL for Vercel deployment
+
+        // Generate Image
+        async function generateImage(e) {
+            e.preventDefault();
+
+            const prompt = document.getElementById('imagePrompt').value;
+            const mode = document.getElementById('imageMode').value;
+            const count = parseInt(document.getElementById('imageCount').value);
+
+            const resultSection = document.getElementById('imageResult');
+            const statusDiv = document.getElementById('imageStatus');
+            const contentDiv = document.getElementById('imageContent');
+
+            resultSection.classList.add('show');
+            statusDiv.innerHTML = '<span class="spinner"></span> Generating image...';
+            statusDiv.className = 'status processing';
+            contentDiv.innerHTML = '';
+
+            try {
+                const payload = {
+                    prompt: prompt,
+                    mode: mode,
+                    n: count
+                };
+
+                const response = await fetch(`${API_BASE_URL}/generate-image`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.status !== 0) {
+                    throw new Error(data.message || 'Failed to generate image');
+                }
+
+                const taskId = data.data?.taskId;
+                if (!taskId) {
+                    throw new Error('No task ID received');
+                }
+
+                await pollImageResult(taskId, statusDiv, contentDiv);
+
+            } catch (error) {
+                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+
+        // Poll Image Result
+        async function pollImageResult(taskId, statusDiv, contentDiv, attempts = 0) {
+            if (attempts > 40) {
+                statusDiv.innerHTML = '⏱ Timeout. Image may still be processing.';
+                statusDiv.className = 'status pending';
+                return;
+            }
+
+            try {
+                const payload = {
+                    taskId: taskId
+                };
+
+                const response = await fetch(`${API_BASE_URL}/query-image`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                const status = data.data?.status?.toLowerCase();
+
+                if (status === 'success') {
+                    const imageUrl = data.data?.imageUrl;
+                    if (imageUrl) {
+                        statusDiv.innerHTML = '✓ Image generated successfully';
+                        statusDiv.className = 'status success';
+                        contentDiv.innerHTML = `
+                            <img src="${imageUrl}" alt="Generated Image" class="result-image">
+                            <br>
+                            <a href="${imageUrl}" target="_blank" class="result-link">Download</a>
+                        `;
+                    }
+                    return;
+                } else if (status === 'processing' || status === 'pending') {
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/40)`;
+                    statusDiv.className = 'status processing';
+                    setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 3000);
+                } else if (status === 'failed' || status === 'error') {
+                    statusDiv.innerHTML = '✗ Generation failed';
+                    statusDiv.className = 'status error';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+
+        // Generate Video
+        async function generateVideo(e) {
+            e.preventDefault();
+
+            const prompt = document.getElementById('videoPrompt').value;
+            const duration = document.getElementById('videoDuration').value;
+            const aspect = document.getElementById('videoAspect').value;
+            const mode = document.getElementById('videoMode').value;
+            const sound = document.getElementById('videoSound').value;
+
+            const resultSection = document.getElementById('videoResult');
+            const statusDiv = document.getElementById('videoStatus');
+            const contentDiv = document.getElementById('videoContent');
+
+            resultSection.classList.add('show');
+            statusDiv.innerHTML = '<span class="spinner"></span> Generating video...';
+            statusDiv.className = 'status processing';
+            contentDiv.innerHTML = '';
+
+            try {
+                const payload = {
+                    prompt: prompt,
+                    duration: String(duration),
+                    aspect_ratio: aspect,
+                    sound: sound,
+                    mode: mode
+                };
+
+                const response = await fetch(`${API_BASE_URL}/generate-video`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.code !== 0) {
+                    throw new Error(data.message || 'Failed to generate video');
+                }
+
+                const taskId = data.task_id || data.data?.task_id;
+                if (!taskId) {
+                    throw new Error('No task ID received');
+                }
+
+                await pollVideoResult(taskId, statusDiv, contentDiv);
+
+            } catch (error) {
+                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+
+        // Poll Video Result
+        async function pollVideoResult(taskId, statusDiv, contentDiv, attempts = 0) {
+            if (attempts > 40) {
+                statusDiv.innerHTML = '⏱ Timeout. Video may still be processing.';
+                statusDiv.className = 'status pending';
+                return;
+            }
+
+            try {
+                const payload = {
+                    taskId: taskId
+                };
+
+                const response = await fetch(`${API_BASE_URL}/query-video`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                const status = data.data?.task_status?.toLowerCase();
+
+                if (status === 'succeed' || status === 'success') {
+                    const videoUrl = data.data?.task_result?.videos?.[0]?.url;
+                    if (videoUrl) {
+                        statusDiv.innerHTML = '✓ Video generated successfully';
+                        statusDiv.className = 'status success';
+                        contentDiv.innerHTML = `
+                            <video controls class="result-video" style="max-height: 400px;">
+                                <source src="${videoUrl}" type="video/mp4">
+                                Your browser does not support video playback
+                            </video>
+                            <br>
+                            <a href="${videoUrl}" target="_blank" class="result-link">Download</a>
+                        `;
+                    }
+                    return;
+                } else if (status === 'processing' || status === 'submitted') {
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/40)`;
+                    statusDiv.className = 'status processing';
+                    setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 5000);
+                } else if (status === 'failed' || status === 'error') {
+                    statusDiv.innerHTML = '✗ Generation failed';
+                    statusDiv.className = 'status error';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+    </script>
+</body>
+</html>
