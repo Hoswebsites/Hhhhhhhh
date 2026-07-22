@@ -238,22 +238,6 @@
             color: #0d47a1;
         }
 
-        .loader {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid #ccc;
-            border-top-color: #1a1a1a;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         .result-image,
         .result-video {
             width: 100%;
@@ -438,10 +422,12 @@
     </div>
 
     <script>
-        // API Configuration
-        const API_BASE_URL = '/api'; 
+        // إعداد الرابط الأساسي للـ API المرفوع على Vercel
+        const API_BASE_URL = '/api';
 
-        // Generate Image
+        // ==========================================
+        // Image Generation Logic
+        // ==========================================
         async function generateImage(e) {
             e.preventDefault();
 
@@ -459,11 +445,7 @@
             contentDiv.innerHTML = '';
 
             try {
-                const payload = {
-                    prompt: prompt,
-                    mode: mode,
-                    n: count
-                };
+                const payload = { prompt: prompt, mode: mode, n: count };
 
                 const response = await fetch(`${API_BASE_URL}/generate-image`, {
                     method: 'POST',
@@ -472,34 +454,30 @@
                 });
 
                 const data = await response.json();
-
                 const taskId = data.data?.taskId || data.taskId;
-                if (!taskId) {
-                    throw new Error(data.message || 'No task ID received from server');
-                }
+
+                if (!taskId) throw new Error(data.message || 'No task ID received from server');
 
                 await pollImageResult(taskId, statusDiv, contentDiv);
-
             } catch (error) {
                 statusDiv.innerHTML = `✗ Error: ${error.message}`;
                 statusDiv.className = 'status error';
             }
         }
 
-        // Poll Image Result
         async function pollImageResult(taskId, statusDiv, contentDiv, attempts = 0) {
-            if (attempts > 60) { // تم زيادة المحاولات للصور أيضاً للأمان
+            if (attempts > 60) {
                 statusDiv.innerHTML = '⏱ Timeout. Image may still be processing.';
                 statusDiv.className = 'status pending';
                 return;
             }
 
             try {
-                const payload = { taskId: taskId };
-                const response = await fetch(`${API_BASE_URL}/query-image`, {
+                // منع كاش المتصفح بإضافة الوقت الحالي للرابط
+                const response = await fetch(`${API_BASE_URL}/query-image?t=${Date.now()}`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ taskId: taskId })
                 });
 
                 const data = await response.json();
@@ -521,7 +499,6 @@
                     statusDiv.innerHTML = '✗ Generation failed';
                     statusDiv.className = 'status error';
                 } else {
-                    // يستمر في الفحص لأي حالة أخرى (pending, processing, الخ)
                     statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/60)`;
                     statusDiv.className = 'status processing';
                     setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 3000);
@@ -532,7 +509,9 @@
             }
         }
 
-        // Generate Video
+        // ==========================================
+        // Video Generation Logic
+        // ==========================================
         async function generateVideo(e) {
             e.preventDefault();
 
@@ -568,11 +547,27 @@
 
                 const data = await response.json();
 
-                // تم تحسين سحب الآي دي ليتوافق مع جميع الاحتمالات
-                const taskId = data.task_id || data.data?.task_id;
+                // التحقق مما إذا كان الفيديو متاحاً فوراً (بدون انتظار)
+                const instantVideoUrl = data.data?.task_result?.videos?.[0]?.url;
+                if (instantVideoUrl) {
+                    statusDiv.innerHTML = '✓ تم إنشاء الفيديو بنجاح (Instant)';
+                    statusDiv.className = 'status success';
+                    contentDiv.innerHTML = `
+                        <video controls autoplay loop class="result-video" style="max-height: 400px; width: 100%;">
+                            <source src="${instantVideoUrl}" type="video/mp4">
+                            متصفحك لا يدعم تشغيل الفيديو
+                        </video>
+                        <br>
+                        <a href="${instantVideoUrl}" target="_blank" class="result-link">تحميل الفيديو</a>
+                    `;
+                    return;
+                }
+
+                // استخراج معرف المهمة لبدء المتابعة
+                const taskId = data.data?.task_id || data.task_id;
                 
                 if (!taskId) {
-                    throw new Error(data.message || 'No task ID received from server');
+                    throw new Error(data.message || 'لم يتم استلام task_id من السيرفر');
                 }
 
                 await pollVideoResult(taskId, statusDiv, contentDiv);
@@ -583,54 +578,54 @@
             }
         }
 
-        // Poll Video Result
         async function pollVideoResult(taskId, statusDiv, contentDiv, attempts = 0) {
-            // رفعنا عدد المحاولات لأن الفيديو يأخذ وقتاً طويلاً
             if (attempts > 80) { 
-                statusDiv.innerHTML = '⏱ Timeout. Video is taking too long but might still be processing.';
+                statusDiv.innerHTML = '⏱ انتهت مهلة الانتظار. قد يستغرق الفيديو وقتاً أطول.';
                 statusDiv.className = 'status pending';
                 return;
             }
 
             try {
-                const payload = { taskId: taskId };
-                const response = await fetch(`${API_BASE_URL}/query-video`, {
+                // منع كاش المتصفح لضمان الحصول على بيانات جديدة دائمًا
+                const response = await fetch(`${API_BASE_URL}/query-video?t=${Date.now()}`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ taskId: taskId })
                 });
 
                 const data = await response.json();
                 
-                // سحب الحالة بطريقة آمنة
+                // قراءة الحالة الصحيحة
                 const status = (data.data?.task_status || data.task_status || '').toLowerCase();
 
                 if (status === 'succeed' || status === 'success') {
+                    // استخراج رابط الفيديو من المسار الصحيح
                     const videoUrl = data.data?.task_result?.videos?.[0]?.url;
+                    
                     if (videoUrl) {
-                        statusDiv.innerHTML = '✓ Video generated successfully';
+                        statusDiv.innerHTML = '✓ تم إنشاء الفيديو بنجاح';
                         statusDiv.className = 'status success';
                         contentDiv.innerHTML = `
-                            <video controls class="result-video" style="max-height: 400px;">
+                            <video controls autoplay loop class="result-video" style="max-height: 400px; width: 100%;">
                                 <source src="${videoUrl}" type="video/mp4">
-                                Your browser does not support video playback
+                                متصفحك لا يدعم تشغيل الفيديو
                             </video>
                             <br>
-                            <a href="${videoUrl}" target="_blank" class="result-link">Download</a>
+                            <a href="${videoUrl}" target="_blank" class="result-link">تحميل الفيديو</a>
                         `;
                     } else {
-                        statusDiv.innerHTML = '✓ Video succeeded but URL is missing';
+                        statusDiv.innerHTML = '✓ مكتمل ولكن لم يتم العثور على رابط الفيديو';
                         statusDiv.className = 'status error';
                     }
                     return;
                 } else if (status === 'failed' || status === 'error') {
-                    statusDiv.innerHTML = '✗ Generation failed. Server returned an error.';
+                    statusDiv.innerHTML = '✗ فشل إنشاء الفيديو';
                     statusDiv.className = 'status error';
                 } else {
-                    // هنا كان الخطأ! الآن سيستمر في الاستعلام مهما كانت الحالة (pending, processing الخ) طالما لم يفشل أو ينجح
-                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/80) - Status: ${status || 'Starting'}`;
+                    // إعادة المحاولة كل 4 ثوانٍ مع تحديث عداد المحاولات والحالة
+                    statusDiv.innerHTML = `<span class="spinner"></span> جاري المعالجة... المحاولة (${attempts + 1}/80) - الحالة: ${status || 'starting'}`;
                     statusDiv.className = 'status processing';
-                    setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 5000);
+                    setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 4000);
                 }
             } catch (error) {
                 statusDiv.innerHTML = `✗ Error: ${error.message}`;
