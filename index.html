@@ -3,541 +3,871 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Media Studio</title>
-    <link rel="icon" href="logo.png">
+    <title>مولد الوسائط بالذكاء الاصطناعي</title>
     <style>
         :root {
-            --bg-primary: #212121;
-            --bg-sidebar: #171717;
-            --bg-input: #2f2f2f;
-            --bg-hover: #323232;
-            --bg-card: #2a2a2a;
-            --border-color: #424242;
-            --text-primary: #ececec;
-            --text-secondary: #b4b4b4;
-            --text-muted: #8e8e8e;
-            --accent: #10a37f;
-            --accent-hover: #1a7f64;
-            --error: #ef4444;
-            --error-bg: rgba(239,68,68,0.1);
-            --success: #22c55e;
-            --success-bg: rgba(34,197,94,0.1);
-            --warning: #f59e0b;
-            --warning-bg: rgba(245,158,11,0.1);
-            --radius: 12px;
-            --radius-sm: 8px;
-            --radius-xs: 6px;
-            --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.78);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --accent-primary: #6366f1;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --input-bg: rgba(15, 23, 42, 0.8);
+            --input-border: rgba(255, 255, 255, 0.18);
+            --radius-lg: 18px;
+            --radius-md: 10px;
         }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: var(--font); background: var(--bg-primary); color: var(--text-primary); height: 100vh; overflow: hidden; display: flex; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            color: var(--text-primary); 
+            line-height: 1.6; 
+            min-height: 100vh;
+            
+            /* خلفية الموقع من ملف logo.jpg */
+            background-color: var(--bg-color);
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), 
+                              url('logo.jpg');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            background-attachment: fixed;
+        }
 
-        /* SIDEBAR */
-        .sidebar { width: 280px; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100vh; transition: transform 0.3s ease; }
-        @media (max-width: 768px) { .sidebar { position: fixed; right: 0; top: 0; z-index: 100; transform: translateX(100%); } .sidebar.open { transform: translateX(0); } }
-        .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; }
-        .sidebar-header img { width: 36px; height: 36px; border-radius: 50%; }
-        .sidebar-header span { font-weight: 600; font-size: 15px; }
-        .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; font-size: 14px; color: var(--text-secondary); margin-bottom: 4px; }
-        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .nav-item.active { background: var(--bg-hover); color: var(--text-primary); }
-        .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
-        .sidebar-footer { padding: 16px; border-top: 1px solid var(--border-color); }
-        .rate-badge { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-card); border-radius: var(--radius-sm); font-size: 12px; margin-bottom: 8px; }
-        .rate-badge .count { color: var(--accent); font-weight: 700; }
-        .rate-badge .label { color: var(--text-secondary); }
-        .new-chat-btn { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: transparent; color: var(--text-primary); font-size: 14px; cursor: pointer; transition: all 0.2s; width: 100%; margin-bottom: 8px; }
-        .new-chat-btn:hover { background: var(--bg-hover); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
 
-        .query-section { padding: 16px; border-top: 1px solid var(--border-color); }
-        .query-section h4 { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .query-input-group { display: flex; gap: 8px; }
-        .query-input-group input { flex: 1; padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-xs); color: var(--text-primary); font-size: 13px; font-family: monospace; outline: none; }
-        .query-input-group input:focus { border-color: var(--accent); }
-        .query-btn { padding: 8px 14px; background: var(--accent); border: none; border-radius: var(--radius-xs); color: white; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .query-btn:hover { background: var(--accent-hover); }
+        /* Header */
+        header { 
+            margin-bottom: 40px; 
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
 
-        /* MAIN */
-        .main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .topbar { padding: 12px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
-        .topbar-left { display: flex; align-items: center; gap: 12px; }
-        .menu-btn { display: none; background: none; border: none; color: var(--text-primary); font-size: 20px; cursor: pointer; padding: 4px; }
-        @media (max-width: 768px) { .menu-btn { display: block; } }
-        .model-selector { display: flex; align-items: center; gap: 8px; background: var(--bg-input); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
-        .model-selector:hover { background: var(--bg-hover); }
-        .model-selector select { background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; outline: none; }
-        .model-selector select option { background: var(--bg-card); color: var(--text-primary); }
+        .main-logo {
+            max-width: 90px;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+            margin-bottom: 8px;
+        }
 
-        /* Chat Area */
-        .chat-area { flex: 1; overflow-y: auto; padding: 24px 0; scroll-behavior: smooth; }
-        .chat-container { max-width: 768px; margin: 0 auto; padding: 0 24px; }
+        .section-logo {
+            max-height: 55px;
+            width: auto;
+            object-fit: contain;
+            margin: 0 auto 15px auto;
+            display: block;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+        }
 
-        /* Welcome */
-        .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px 20px; }
-        .welcome-logo { width: 64px; height: 64px; border-radius: 50%; margin-bottom: 20px; }
-        .welcome h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-        .welcome p { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
-        .suggestions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 600px; }
-        @media (max-width: 600px) { .suggestions { grid-template-columns: 1fr; } }
-        .suggestion-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all 0.2s; text-align: right; }
-        .suggestion-card:hover { background: var(--bg-hover); border-color: var(--accent); }
-        .suggestion-card .icon { font-size: 20px; margin-bottom: 8px; }
-        .suggestion-card .title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-        .suggestion-card .desc { font-size: 12px; color: var(--text-muted); }
+        h1 { 
+            font-size: 34px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px; 
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
 
-        /* Messages */
-        .message { margin-bottom: 24px; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .message-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .message-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-        .message-avatar.user { background: var(--accent); color: white; }
-        .message-avatar.bot { background: var(--bg-card); border: 1px solid var(--border-color); }
-        .message-name { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
-        .message-body { margin-right: 36px; }
-        .message-content { background: var(--bg-card); border-radius: var(--radius); padding: 16px; font-size: 14px; line-height: 1.6; }
-        .message.user .message-content { background: var(--bg-input); }
+        .subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 400; }
 
-        /* Status */
-        .status-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-xs); font-size: 13px; margin-top: 8px; }
-        .status-indicator.processing { background: var(--warning-bg); color: var(--warning); }
-        .status-indicator.success { background: var(--success-bg); color: var(--success); }
-        .status-indicator.error { background: var(--error-bg); color: var(--error); }
-        .status-indicator.pending { color: var(--accent); }
-        .spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Rate Limit Banner */
+        .rate-banner {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 20px;
+            font-size: 14px;
+        }
 
-        /* Result Media */
-        .result-media { margin-top: 12px; border-radius: var(--radius); overflow: hidden; }
-        .result-media img { width: 100%; max-height: 400px; object-fit: cover; border-radius: var(--radius); }
-        .result-media video { width: 100%; max-height: 400px; border-radius: var(--radius); }
-        .result-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-        .result-action-btn { padding: 8px 16px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-xs); color: var(--text-primary); font-size: 13px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-        .result-action-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+        .rate-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        /* Token Box */
-        .token-box { display: flex; align-items: center; gap: 8px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-xs); padding: 8px 12px; margin-top: 8px; font-size: 12px; color: var(--text-muted); }
-        .token-box code { flex: 1; color: var(--accent); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .copy-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 14px; padding: 4px; }
+        .rate-info .icon {
+            font-size: 18px;
+        }
 
-        /* Input Area */
-        .input-area { padding: 16px 24px; border-top: 1px solid var(--border-color); background: var(--bg-primary); }
-        .input-container { max-width: 768px; margin: 0 auto; }
-        .input-wrapper { display: flex; align-items: flex-end; gap: 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 12px 16px; transition: border-color 0.2s; }
-        .input-wrapper:focus-within { border-color: var(--accent); }
-        .input-wrapper textarea { flex: 1; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 15px; resize: none; outline: none; min-height: 24px; max-height: 120px; line-height: 1.5; }
-        .input-wrapper textarea::placeholder { color: var(--text-muted); }
-        .send-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; flex-shrink: 0; }
-        .send-btn:hover { background: var(--accent-hover); }
-        .send-btn:disabled { background: var(--bg-hover); color: var(--text-muted); cursor: not-allowed; }
+        .rate-info .label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
 
-        .input-options { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
-        .option-chip { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; font-size: 12px; color: var(--text-secondary); }
-        .option-chip select { background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 12px; outline: none; }
-        .option-chip select option { background: var(--bg-card); }
+        .rate-info .count {
+            color: #60a5fa;
+            font-weight: 700;
+            margin-right: 4px;
+        }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        .rate-info .reset-time {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
 
-        /* Overlay */
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
-        @media (max-width: 768px) { .overlay.show { display: block; } }
+        /* Main Content Layout */
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+
+        .section { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border); 
+            border-radius: var(--radius-lg); 
+            padding: 30px; 
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .section h2 { 
+            font-size: 20px; 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            color: var(--text-primary);
+        }
+
+        .section-icon { font-size: 22px; }
+
+        .info-box { 
+            background-color: rgba(99, 102, 241, 0.18); 
+            border-right: 4px solid var(--accent-primary); 
+            padding: 12px 16px; 
+            border-radius: 8px; 
+            margin-bottom: 24px; 
+            color: #e0e7ff; 
+            font-size: 13px; 
+            line-height: 1.5; 
+            text-align: center; 
+        }
+
+        /* Forms & Inputs */
+        .form-group { margin-bottom: 20px; }
+
+        label { 
+            display: block; 
+            font-size: 12px; 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 0.8px; 
+        }
+
+        input, textarea, select { 
+            width: 100%; 
+            padding: 12px 14px; 
+            border: 1px solid var(--input-border); 
+            border-radius: var(--radius-md); 
+            font-size: 14px; 
+            font-family: inherit; 
+            background-color: var(--input-bg); 
+            color: var(--text-primary); 
+            transition: all 0.2s ease; 
+        }
+
+        input:focus, textarea:focus, select:focus { 
+            outline: none; 
+            border-color: var(--accent-primary); 
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+            background-color: rgba(15, 23, 42, 0.95);
+        }
+
+        textarea { resize: vertical; min-height: 100px; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+        /* Buttons */
+        .button-group { display: flex; gap: 12px; margin-top: 24px; }
+
+        button { 
+            padding: 12px 20px; 
+            border-radius: var(--radius-md); 
+            font-size: 13px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            border: none;
+        }
+
+        .btn-primary { 
+            background: var(--accent-gradient); 
+            color: white; 
+            flex: 2; 
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover { 
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary { 
+            background-color: rgba(255, 255, 255, 0.12); 
+            color: var(--text-primary); 
+            flex: 1; 
+        }
+
+        .btn-secondary:hover { 
+            background-color: rgba(255, 255, 255, 0.2); 
+        }
+
+        /* Results & Status */
+        .result-section { 
+            margin-top: 30px; 
+            padding: 20px; 
+            background-color: var(--input-bg); 
+            border: 1px solid var(--card-border); 
+            border-radius: var(--radius-md); 
+            display: none; 
+        }
+
+        .result-section.show { display: block; }
+
+        .result-section h3 { 
+            font-size: 13px; 
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            color: var(--text-secondary); 
+            text-align: center; 
+        }
+
+        .status { 
+            padding: 12px 16px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            font-size: 13px; 
+            font-weight: 500; 
+            border-right: 4px solid; 
+            word-break: break-all; 
+        }
+
+        .status.pending { background-color: rgba(245, 158, 11, 0.15); border-right-color: #f59e0b; color: #fbbf24; }
+        .status.success { background-color: rgba(16, 185, 129, 0.15); border-right-color: #10b981; color: #34d399; }
+        .status.error { background-color: rgba(239, 68, 68, 0.15); border-right-color: #ef4444; color: #f87171; }
+        .status.processing { background-color: rgba(59, 130, 246, 0.15); border-right-color: #3b82f6; color: #60a5fa; }
+        .status.rate-limited { background-color: rgba(168, 85, 247, 0.15); border-right-color: #a855f7; color: #c084fc; }
+
+        .result-image, .result-video { 
+            width: 100%; 
+            max-width: 100%; 
+            border-radius: 8px; 
+            margin-top: 15px; 
+            border: 1px solid var(--card-border); 
+        }
+
+        .result-link { 
+            display: block; 
+            text-align: center; 
+            margin-top: 15px; 
+            padding: 12px 16px; 
+            background: var(--accent-gradient); 
+            color: white; 
+            text-decoration: none; 
+            border-radius: var(--radius-md); 
+            font-weight: 600; 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            transition: opacity 0.2s; 
+        }
+
+        .result-link:hover { opacity: 0.9; }
+
+        .spinner { 
+            display: inline-block; 
+            position: relative; 
+            width: 14px; 
+            height: 14px; 
+            vertical-align: middle; 
+            margin-left: 6px; 
+        }
+
+        .spinner::after { 
+            content: " "; 
+            display: block; 
+            width: 12px; 
+            height: 12px; 
+            margin: 1px; 
+            border-radius: 50%; 
+            border: 2px solid #ffffff; 
+            border-color: #ffffff transparent #ffffff transparent; 
+            animation: spinner 1.2s linear infinite; 
+        }
+
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <img src="logo.jpg" alt="Logo" class="main-logo">
+            <h1>مولد الوسائط بالذكاء الاصطناعي</h1>
+            <p class="subtitle">توليد الصور والفيديوهات بضغطة زر</p>
+        </header>
 
-<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <img src="logo.png" alt="Logo">
-        <span>AI Media Studio</span>
-    </div>
-    <div class="sidebar-nav">
-        <button class="new-chat-btn" onclick="newChat()"><span>＋</span> محادثة جديدة</button>
-        <div class="nav-item active" onclick="setMode('image')" id="navImage"><span class="icon">🖼️</span><span>توليد الصور</span></div>
-        <div class="nav-item" onclick="setMode('video')" id="navVideo"><span class="icon">🎬</span><span>توليد الفيديو</span></div>
-        <div class="nav-item" onclick="setMode('query')" id="navQuery"><span class="icon">🔍</span><span>استعلام بالتوكن</span></div>
-    </div>
-    <div class="sidebar-footer">
-        <div class="rate-badge"><span class="label">الصور</span><span><span class="count" id="imageCount">0</span> / 10</span></div>
-        <div class="rate-badge"><span class="label">الفيديو</span><span><span class="count" id="videoCount">0</span> / 5</span></div>
-    </div>
-    <div class="query-section">
-        <h4>استعلام عن مهمة</h4>
-        <div class="query-input-group">
-            <input type="text" id="queryTokenInput" placeholder="tkn_xxxxxxxxxxxx">
-            <button class="query-btn" onclick="queryByToken()">بحث</button>
-        </div>
-    </div>
-</aside>
-
-<main class="main">
-    <div class="topbar">
-        <div class="topbar-left">
-            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="model-selector">
-                <span>⚡</span>
-                <select id="modelSelect" onchange="onModelChange()"></select>
+        <!-- شريط عرض حد الطلبات -->
+        <div class="rate-banner">
+            <div class="rate-info">
+                <span class="icon">🖼️</span>
+                <span class="label">الصور:</span>
+                <span class="count" id="imageCountDisplay">0</span>/<span>3</span>
+                <span class="reset-time" id="imageResetTime"></span>
+            </div>
+            <div class="rate-info">
+                <span class="icon">🎬</span>
+                <span class="label">الفيديو:</span>
+                <span class="count" id="videoCountDisplay">0</span>/<span>2</span>
+                <span class="reset-time" id="videoResetTime"></span>
             </div>
         </div>
-    </div>
 
-    <div class="chat-area" id="chatArea">
-        <div class="chat-container" id="chatContainer">
-            <div class="welcome" id="welcomeScreen">
-                <img src="logo.png" alt="Logo" class="welcome-logo">
-                <h2>مرحباً بك في AI Media Studio</h2>
-                <p>اكتب وصفاً لتوليد صور أو فيديوهات بالذكاء الاصطناعي</p>
-                <div class="suggestions">
-                    <div class="suggestion-card" onclick="useSuggestion('image', 'A majestic dragon flying over a medieval castle at sunset, cinematic lighting, 8K quality')"><div class="icon">🖼️</div><div class="title">صورة فانتازيا</div><div class="desc">تنين يحلق فوق قلعة قروسطية</div></div>
-                    <div class="suggestion-card" onclick="useSuggestion('video', 'A time-lapse of clouds moving over a mountain range at sunrise, cinematic drone shot')"><div class="icon">🎬</div><div class="title">فيديو سينمائي</div><div class="desc">غيوم فوق جبال عند الشروق</div></div>
-                    <div class="suggestion-card" onclick="useSuggestion('image', 'A photorealistic portrait of a young woman with blue eyes, soft studio lighting, 8K')"><div class="icon">👤</div><div class="title">بورتريه واقعي</div><div class="desc">بورتريه شخص بجودة عالية</div></div>
-                    <div class="suggestion-card" onclick="useSuggestion('video', 'Ocean waves crashing on a sandy beach at golden hour, slow motion')"><div class="icon">🌊</div><div class="title">فيديو طبيعي</div><div class="desc">أمواج البحر على الشاطئ</div></div>
+        <div class="main-content">
+            <!-- قسم الصور -->
+            <div class="section" id="imageSection">
+                <img src="logo.jpg" alt="Logo" class="section-logo">
+
+                <h2>
+                    <span class="section-icon">🖼️</span>
+                    توليد الصور
+                </h2>
+
+                <div class="info-box">
+                    اكتب وصفاً للصورة التي تريد توليدها وسيقوم الذكاء الاصطناعي برسمها.
+                </div>
+
+                <form onsubmit="generateImage(event)">
+                    <div class="form-group">
+                        <label for="imagePrompt">الوصف</label>
+                        <textarea id="imagePrompt" placeholder="مثال: قطة تلعب في حديقة خضراء وقت الغروب" required maxlength="500"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="imageMode">الجودة</label>
+                            <select id="imageMode">
+                                <option value="lite">قياسي (Standard)</option>
+                                <option value="pro">احترافي (Professional)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="imageCount">عدد الصور (1-4)</label>
+                            <input type="number" id="imageCount" value="1" min="1" max="4">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="reset" class="btn-secondary">مسح</button>
+                        <button type="submit" class="btn-primary" id="imageSubmitBtn">توليد</button>
+                    </div>
+                </form>
+
+                <div id="imageResult" class="result-section">
+                    <h3>النتيجة</h3>
+                    <div id="imageStatus" class="status"></div>
+                    <div id="imageContent"></div>
+                </div>
+            </div>
+
+            <!-- قسم الفيديو -->
+            <div class="section" id="videoSection">
+                <img src="logo.jpg" alt="Logo" class="section-logo">
+
+                <h2>
+                    <span class="section-icon">🎬</span>
+                    توليد الفيديو
+                </h2>
+
+                <div class="info-box">
+                    اكتب وصفاً لتوليد فيديو حركي رائع بالذكاء الاصطناعي.
+                </div>
+
+                <form onsubmit="generateVideo(event)">
+                    <div class="form-group">
+                        <label for="videoPrompt">الوصف</label>
+                        <textarea id="videoPrompt" placeholder="مثال: أمواج البحر تضرب الشاطئ الرملي" required maxlength="500"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="videoDuration">المدة (بالثواني)</label>
+                            <select id="videoDuration">
+                                <option value="5">5 ثوانٍ</option>
+                                <option value="8">8 ثوانٍ</option>
+                                <option value="15">15 ثانية</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="videoAspect">أبعاد الفيديو</label>
+                            <select id="videoAspect">
+                                <option value="9:16">9:16 (عمودي - Portrait)</option>
+                                <option value="16:9">16:9 (عريض - Widescreen)</option>
+                                <option value="1:1">1:1 (مربع - Square)</option>
+                                <option value="4:3">4:3 (قياسي - Standard)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="videoMode">الجودة</label>
+                            <select id="videoMode">
+                                <option value="pro">احترافي (Professional)</option>
+                                <option value="lite">قياسي (Standard)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="videoSound">الصوت</label>
+                            <select id="videoSound">
+                                <option value="on">مفعل</option>
+                                <option value="off">معطل</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="reset" class="btn-secondary">مسح</button>
+                        <button type="submit" class="btn-primary" id="videoSubmitBtn">توليد</button>
+                    </div>
+                </form>
+
+                <div id="videoResult" class="result-section">
+                    <h3>النتيجة</h3>
+                    <div id="videoStatus" class="status"></div>
+                    <div id="videoContent"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="input-area">
-        <div class="input-container">
-            <div class="input-wrapper">
-                <textarea id="promptInput" placeholder="اكتب وصفاً للصورة التي تريد توليدها..." rows="1" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
-                <button class="send-btn" id="sendBtn" onclick="submit()">➤</button>
-            </div>
-            <div class="input-options">
-                <div class="option-chip"><span>النمط:</span><select id="modeSelect"><option value="lite">قياسي (سريع)</option><option value="pro">احترافي (عالي الجودة)</option></select></div>
-                <div class="option-chip" id="durationChip" style="display:none"><span>المدة:</span><select id="durationSelect"><option value="5">5 ثوانٍ</option><option value="8">8 ثوانٍ</option><option value="15">15 ثانية</option></select></div>
-                <div class="option-chip" id="aspectChip" style="display:none"><span>الأبعاد:</span><select id="aspectSelect"><option value="16:9">16:9 عريض</option><option value="9:16">9:16 عمودي</option><option value="1:1">1:1 مربع</option><option value="4:3">4:3 قياسي</option></select></div>
-                <div class="option-chip" id="soundChip" style="display:none"><span>الصوت:</span><select id="soundSelect"><option value="off">معطل</option><option value="on">مفعل</option></select></div>
-                <div class="option-chip" id="countChip"><span>العدد:</span><select id="countSelect"><option value="1">1</option><option value="2">2</option><option value="4">4</option></select></div>
-            </div>
-        </div>
-    </div>
-</main>
+    <script>
+        const API_BASE_URL = '/api';
 
-<script>
-const API_BASE = '/api';
-let currentMode = 'image';
-let isProcessing = false;
+        // ==========================================
+        // نظام Rate Limiting على الفرونت إند
+        // ==========================================
+        const RateTracker = {
+            image: { count: 0, windowStart: 0, limit: 3, windowMs: 60000 },
+            video: { count: 0, windowStart: 0, limit: 2, windowMs: 60000 },
 
-const RateTracker = {
-    image: { count: 0, start: 0, limit: 10, window: 60000 },
-    video: { count: 0, start: 0, limit: 5, window: 60000 },
-    canRequest(type) { const t = this[type]; if (Date.now() - t.start > t.window) { t.count = 0; t.start = Date.now(); } return t.count < t.limit; },
-    increment(type) { const t = this[type]; if (Date.now() - t.start > t.window) { t.count = 1; t.start = Date.now(); } else t.count++; },
-    updateUI() { document.getElementById('imageCount').textContent = this.image.count; document.getElementById('videoCount').textContent = this.video.count; }
-};
+            canRequest(type) {
+                const tracker = this[type];
+                const now = Date.now();
 
-const imageModels = ['gemini', 'dall-e-3', 'stable-diffusion', 'flux', 'midjourney'];
-const videoModels = ['seedance', 'kling-omni', 'kling-v2', 'runway-gen3'];
+                // إعادة ضبط إذا انتهت النافذة
+                if (now - tracker.windowStart > tracker.windowMs) {
+                    tracker.count = 0;
+                    tracker.windowStart = now;
+                }
 
-function setMode(mode) {
-    currentMode = mode;
-    document.getElementById('navImage').classList.toggle('active', mode === 'image');
-    document.getElementById('navVideo').classList.toggle('active', mode === 'video');
-    document.getElementById('navQuery').classList.toggle('active', mode === 'query');
-    document.getElementById('durationChip').style.display = mode === 'video' ? 'flex' : 'none';
-    document.getElementById('aspectChip').style.display = mode === 'video' ? 'flex' : 'none';
-    document.getElementById('soundChip').style.display = mode === 'video' ? 'flex' : 'none';
-    document.getElementById('countChip').style.display = mode === 'image' ? 'flex' : 'none';
+                return tracker.count < tracker.limit;
+            },
 
-    const modelSelect = document.getElementById('modelSelect');
-    const models = mode === 'video' ? videoModels : imageModels;
-    const names = { 'gemini': 'Gemini (Google)', 'dall-e-3': 'DALL-E 3', 'stable-diffusion': 'Stable Diffusion', 'flux': 'Flux.1 Pro', 'midjourney': 'Midjourney V6', 'seedance': 'Seedance 1.0 Lite', 'kling-omni': 'Kling Omni', 'kling-v2': 'Kling V2', 'runway-gen3': 'Runway Gen-3' };
-    modelSelect.innerHTML = models.map(m => `<option value="${m}">${names[m] || m}</option>`).join('');
+            increment(type) {
+                const tracker = this[type];
+                const now = Date.now();
 
-    if (mode === 'query') {
-        document.getElementById('promptInput').placeholder = 'أدخل التوكن هنا للاستعلام عن حالة المهمة...';
-        document.getElementById('sendBtn').textContent = '🔍';
-    } else {
-        document.getElementById('promptInput').placeholder = mode === 'image' ? 'اكتب وصفاً للصورة التي تريد توليدها...' : 'اكتب وصفاً للفيديو الذي تريد توليده...';
-        document.getElementById('sendBtn').textContent = '➤';
-    }
-    if (window.innerWidth <= 768) toggleSidebar();
-}
+                if (now - tracker.windowStart > tracker.windowMs) {
+                    tracker.count = 1;
+                    tracker.windowStart = now;
+                } else {
+                    tracker.count++;
+                }
+            },
 
-function onModelChange() {}
-function hideWelcome() { const w = document.getElementById('welcomeScreen'); if (w) w.style.display = 'none'; }
+            getRemaining(type) {
+                const tracker = this[type];
+                const now = Date.now();
+                if (now - tracker.windowStart > tracker.windowMs) {
+                    return tracker.limit;
+                }
+                return Math.max(0, tracker.limit - tracker.count);
+            },
 
-function addMessage(role, content) {
-    hideWelcome();
-    const container = document.getElementById('chatContainer');
-    const div = document.createElement('div');
-    div.className = `message ${role}`;
-    div.innerHTML = `<div class="message-header"><div class="message-avatar ${role}">${role === 'user' ? '👤' : '🤖'}</div><span class="message-name">${role === 'user' ? 'أنت' : 'AI Media Studio'}</span></div><div class="message-body"><div class="message-content">${content}</div></div>`;
-    container.appendChild(div);
-    scrollToBottom();
-    return div;
-}
+            getResetTime(type) {
+                const tracker = this[type];
+                const now = Date.now();
+                const elapsed = now - tracker.windowStart;
+                const remaining = Math.max(0, tracker.windowMs - elapsed);
+                if (remaining === 0) return '';
+                const seconds = Math.ceil(remaining / 1000);
+                return `(${seconds}ث)`;
+            }
+        };
 
-function updateMessage(div, newContent) { const body = div.querySelector('.message-body .message-content'); if (body) body.innerHTML = newContent; }
-function scrollToBottom() { document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight; }
-function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
-function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }
+        // تحديث عرض العداد كل ثانية
+        function updateRateDisplay() {
+            document.getElementById('imageCountDisplay').textContent = 
+                RateTracker.image.count || 0;
+            document.getElementById('imageResetTime').textContent = 
+                RateTracker.getResetTime('image');
+            
+            document.getElementById('videoCountDisplay').textContent = 
+                RateTracker.video.count || 0;
+            document.getElementById('videoResetTime').textContent = 
+                RateTracker.getResetTime('video');
 
-async function submit() {
-    const input = document.getElementById('promptInput');
-    const value = input.value.trim();
-    if (!value || isProcessing) return;
-    isProcessing = true;
-    document.getElementById('sendBtn').disabled = true;
+            // تعطيل الأزرار عند الوصول للحد
+            const imageBtn = document.getElementById('imageSubmitBtn');
+            const videoBtn = document.getElementById('videoSubmitBtn');
 
-    if (currentMode === 'query') {
-        input.value = '';
-        isProcessing = false;
-        document.getElementById('sendBtn').disabled = false;
-        addMessage('user', `استعلام بالتوكن: <code>${value}</code>`);
-        await queryTokenInChat(value);
-        return;
-    }
-
-    if (!RateTracker.canRequest(currentMode)) {
-        addMessage('user', value);
-        isProcessing = false;
-        document.getElementById('sendBtn').disabled = false;
-        const limit = currentMode === 'image' ? 10 : 5;
-        addMessage('bot', `⏳ تم تجاوز الحد. ${limit} طلبات/دقيقة. انتظر قليلاً.`);
-        return;
-    }
-
-    input.value = '';
-    autoResize(input);
-    addMessage('user', value);
-
-    const model = document.getElementById('modelSelect').value;
-    const mode = document.getElementById('modeSelect').value;
-    const botMsg = addMessage('bot', '<div class="status-indicator processing"><span class="spinner"></span> جاري المعالجة...</div>');
-
-    RateTracker.increment(currentMode);
-    RateTracker.updateUI();
-
-    try {
-        if (currentMode === 'image') await submitImage(value, model, mode, botMsg);
-        else await submitVideo(value, model, mode, botMsg);
-    } catch (error) {
-        updateMessage(botMsg, `<div class="status-indicator error">✗ ${error.message}</div>`);
-    } finally {
-        isProcessing = false;
-        document.getElementById('sendBtn').disabled = false;
-    }
-}
-
-// ========================================
-// IMAGE GENERATION - USING GEMINI-IMAGE-GENERATOR (DIRECT!)
-// No polling needed - returns URL immediately!
-// ========================================
-async function submitImage(prompt, model, mode, msgDiv) {
-    const count = parseInt(document.getElementById('countSelect').value);
-
-    const response = await fetch(`${API_BASE}/generate-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, mode, n: count, model })
-    });
-
-    const data = await response.json();
-
-    if (response.status === 429) {
-        updateMessage(msgDiv, '<div class="status-indicator error">⏳ تم تجاوز الحد من الخادم.</div>');
-        return;
-    }
-
-    if (data.status === 1) {
-        updateMessage(msgDiv, `<div class="status-indicator error">✗ ${data.message}</div>`);
-        return;
-    }
-
-    const token = data.token;
-    const tokenHtml = token ? `<div class="token-box"><code>${token}</code><button class="copy-btn" onclick="copyToken('${token}')">📋</button></div>` : '';
-
-    // DIRECT SUCCESS - Gemini returns URL immediately!
-    if (data.imageUrl || (data.imageUrls && data.imageUrls.length > 0)) {
-        const urls = data.imageUrls || [data.imageUrl];
-        let imagesHtml = urls.map(url => `<div class="result-media"><img src="${url}" alt="Generated Image" loading="lazy" crossorigin="anonymous"></div>`).join('');
-        let actionsHtml = urls.map((url, i) => {
-            const isDataUri = url.startsWith('data:');
-            return isDataUri ? `<button class="result-action-btn" onclick="downloadImage('${url}', 'image_${i+1}')">⬇ تحميل</button>` : `<a href="${url}" target="_blank" class="result-action-btn">⬇ تحميل</a><a href="${url}" target="_blank" class="result-action-btn">🔗 فتح</a>`;
-        }).join('');
-        updateMessage(msgDiv, `<div class="status-indicator success">✓ تم إنشاء ${urls.length} صورة بنجاح</div>${imagesHtml}<div class="result-actions">${actionsHtml}</div>${tokenHtml}`);
-        return;
-    }
-
-    // FALLBACK: Advanced mode with polling
-    const taskId = data.taskId;
-    if (taskId) {
-        updateMessage(msgDiv, `<div class="status-indicator processing"><span class="spinner"></span> جاري إنشاء الصورة...<br><small style="color:var(--text-muted)">المهمة: ${taskId}</small></div>${tokenHtml}`);
-        await pollImage(taskId, msgDiv, token);
-    } else {
-        updateMessage(msgDiv, `<div class="status-indicator error">✗ لم يتم الحصول على رابط الصورة</div>`);
-    }
-}
-
-async function pollImage(taskId, msgDiv, token) {
-    let attempts = 0;
-    const maxAttempts = 40;
-    const tokenHtml = token ? `<div class="token-box"><code>${token}</code><button class="copy-btn" onclick="copyToken('${token}')">📋</button></div>` : '';
-
-    while (attempts < maxAttempts) {
-        await sleep(5000);
-        attempts++;
-        try {
-            const response = await fetch(`${API_BASE}/query-image`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ taskId })
-            });
-            const data = await response.json();
-            if (data.status === 1) { updateMessage(msgDiv, `<div class="status-indicator error">✗ ${data.message}</div>`); return; }
-
-            const url = data.imageUrl || (data.imageUrls && data.imageUrls[0]) || '';
-            if (url) {
-                const imagesHtml = data.imageUrls && data.imageUrls.length > 1 ? data.imageUrls.map(u => `<div class="result-media"><img src="${u}" alt="Image" loading="lazy"></div>`).join('') : `<div class="result-media"><img src="${url}" alt="Generated Image" loading="lazy"></div>`;
-                const actionsHtml = (data.imageUrls || [url]).map((u, i) => `<a href="${u}" target="_blank" class="result-action-btn">⬇ تحميل ${i > 0 ? (i+1) : ''}</a>`).join('');
-                updateMessage(msgDiv, `<div class="status-indicator success">✓ تم إنشاء الصورة بنجاح</div>${imagesHtml}<div class="result-actions">${actionsHtml}</div>${tokenHtml}`);
-                return;
+            if (!RateTracker.canRequest('image')) {
+                imageBtn.disabled = true;
+                imageBtn.textContent = `انتظر ${RateTracker.getResetTime('image')}`;
+                document.getElementById('imageSection').classList.add('disabled');
+            } else {
+                imageBtn.disabled = false;
+                imageBtn.textContent = 'توليد';
+                document.getElementById('imageSection').classList.remove('disabled');
             }
 
-            const status = String(data.taskStatus || '').toUpperCase();
-            if (['FAILED', 'ERROR'].includes(status)) { updateMessage(msgDiv, '<div class="status-indicator error">✗ فشلت العملية</div>'); return; }
-            updateMessage(msgDiv, `<div class="status-indicator processing"><span class="spinner"></span> معالجة... (${attempts}/${maxAttempts}) - ${status || 'PENDING'}</div>${tokenHtml}`);
-        } catch (e) { updateMessage(msgDiv, `<div class="status-indicator error">✗ خطأ في الاستعلام</div>`); return; }
-    }
-    updateMessage(msgDiv, `<div class="status-indicator pending">⏱ انتهت مهلة الانتظار. استخدم التوكن للاستعلام لاحقاً.<br><small style="color:var(--text-muted)">${token}</small></div>`);
-}
-
-// ========================================
-// VIDEO GENERATION
-// ========================================
-async function submitVideo(prompt, model, mode, msgDiv) {
-    const duration = document.getElementById('durationSelect').value;
-    const aspect = document.getElementById('aspectSelect').value;
-    const sound = document.getElementById('soundSelect').value;
-
-    const response = await fetch(`${API_BASE}/generate-video`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, duration, aspect_ratio: aspect, sound, mode, model })
-    });
-
-    const data = await response.json();
-    if (response.status === 429) { updateMessage(msgDiv, '<div class="status-indicator error">⏳ تم تجاوز الحد.</div>'); return; }
-    if (data.status === 1) { updateMessage(msgDiv, `<div class="status-indicator error">✗ ${data.message}</div>`); return; }
-
-    const taskId = data.taskId;
-    const token = data.token;
-    const tokenHtml = token ? `<div class="token-box"><code>${token}</code><button class="copy-btn" onclick="copyToken('${token}')">📋</button></div>` : '';
-
-    if (data.videoUrl) {
-        updateMessage(msgDiv, `<div class="status-indicator success">✓ تم إنشاء الفيديو بنجاح</div><div class="result-media"><video controls autoplay loop src="${data.videoUrl}"></video></div><div class="result-actions"><a href="${data.videoUrl}" target="_blank" class="result-action-btn">⬇ تحميل الفيديو</a></div>${tokenHtml}`);
-        return;
-    }
-
-    if (!taskId) { updateMessage(msgDiv, `<div class="status-indicator error">✗ لم يتم استلام رقم المهمة</div>`); return; }
-
-    updateMessage(msgDiv, `<div class="status-indicator processing"><span class="spinner"></span> جاري إنشاء الفيديو...<br><small style="color:var(--text-muted)">المهمة: ${taskId}</small></div>${tokenHtml}`);
-    await pollVideo(taskId, msgDiv, token);
-}
-
-async function pollVideo(taskId, msgDiv, token) {
-    let attempts = 0;
-    const maxAttempts = 60;
-    const tokenHtml = token ? `<div class="token-box"><code>${token}</code><button class="copy-btn" onclick="copyToken('${token}')">📋</button></div>` : '';
-
-    while (attempts < maxAttempts) {
-        await sleep(10000);
-        attempts++;
-        try {
-            const response = await fetch(`${API_BASE}/query-video`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ taskId })
-            });
-            const data = await response.json();
-            if (data.status === 1) { updateMessage(msgDiv, `<div class="status-indicator error">✗ ${data.message}</div>`); return; }
-
-            const videoUrl = data.videoUrl;
-            if (videoUrl) {
-                updateMessage(msgDiv, `<div class="status-indicator success">✓ تم إنشاء الفيديو بنجاح</div><div class="result-media"><video controls autoplay loop src="${videoUrl}"></video></div><div class="result-actions"><a href="${videoUrl}" target="_blank" class="result-action-btn">⬇ تحميل الفيديو</a></div>${tokenHtml}`);
-                return;
+            if (!RateTracker.canRequest('video')) {
+                videoBtn.disabled = true;
+                videoBtn.textContent = `انتظر ${RateTracker.getResetTime('video')}`;
+                document.getElementById('videoSection').classList.add('disabled');
+            } else {
+                videoBtn.disabled = false;
+                videoBtn.textContent = 'توليد';
+                document.getElementById('videoSection').classList.remove('disabled');
             }
-
-            const status = String(data.taskStatus || '').toLowerCase();
-            if (['failed', 'error'].includes(status)) { updateMessage(msgDiv, '<div class="status-indicator error">✗ فشلت العملية</div>'); return; }
-            updateMessage(msgDiv, `<div class="status-indicator processing"><span class="spinner"></span> معالجة الفيديو... (${attempts}/${maxAttempts}) - ${status || 'جاري'}</div>${tokenHtml}`);
-        } catch (e) { updateMessage(msgDiv, `<div class="status-indicator error">✗ خطأ في الاستعلام</div>`); return; }
-    }
-    updateMessage(msgDiv, `<div class="status-indicator pending">⏱ انتهت مهلة الانتظار. استخدم التوكن للاستعلام لاحقاً.<br><small style="color:var(--text-muted)">${token}</small></div>`);
-}
-
-// ========================================
-// QUERY BY TOKEN
-// ========================================
-async function queryByToken() {
-    const input = document.getElementById('queryTokenInput');
-    const token = input.value.trim();
-    if (!token) return;
-    input.value = '';
-    addMessage('user', `استعلام بالتوكن: <code>${token}</code>`);
-    await queryTokenInChat(token);
-}
-
-async function queryTokenInChat(token) {
-    const msgDiv = addMessage('bot', '<div class="status-indicator processing"><span class="spinner"></span> جاري البحث...</div>');
-    try {
-        const response = await fetch(`${API_BASE}/task/${token}`);
-        const data = await response.json();
-        if (data.status === 1) { updateMessage(msgDiv, `<div class="status-indicator error">✗ ${data.message}</div>`); return; }
-
-        const typeLabel = data.type === 'image' ? '🖼️ صورة' : data.type === 'video' ? '🎬 فيديو' : '🔊 مزامنة شفاه';
-        const statusClass = data.taskStatus === 'completed' ? 'success' : data.taskStatus === 'failed' ? 'error' : 'processing';
-        let content = `<div class="status-indicator ${statusClass}">${typeLabel} - ${data.taskStatus}</div>`;
-        content += `<p style="margin-top:8px;font-size:13px;color:var(--text-secondary)">الوصف: ${data.prompt}</p>`;
-        content += `<p style="font-size:12px;color:var(--text-muted)">النموذج: ${data.model} | التاريخ: ${new Date(data.createdAt).toLocaleString('ar')}</p>`;
-
-        if (data.resultUrl) {
-            if (data.type === 'image') content += `<div class="result-media"><img src="${data.resultUrl}" alt="Image"></div>`;
-            else content += `<div class="result-media"><video controls src="${data.resultUrl}"></video></div>`;
-            content += `<div class="result-actions"><a href="${data.resultUrl}" target="_blank" class="result-action-btn">⬇ تحميل</a></div>`;
         }
-        content += `<div class="token-box"><code>${token}</code><button class="copy-btn" onclick="copyToken('${token}')">📋</button></div>`;
-        updateMessage(msgDiv, content);
-    } catch (e) { updateMessage(msgDiv, '<div class="status-indicator error">✗ خطأ في الاتصال</div>'); }
-}
 
-// ========================================
-// HELPERS
-// ========================================
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        setInterval(updateRateDisplay, 1000);
+        updateRateDisplay();
 
-function copyToken(token) {
-    navigator.clipboard.writeText(token).then(() => {
-        const btns = document.querySelectorAll('.copy-btn');
-        btns.forEach(b => { if (b.closest('.token-box')?.querySelector('code')?.textContent === token) b.textContent = '✓'; });
-        setTimeout(() => { btns.forEach(b => { if (b.closest('.token-box')?.querySelector('code')?.textContent === token) b.textContent = '📋'; }); }, 2000);
-    });
-}
+        // ==========================================
+        // Image Generation Logic
+        // ==========================================
+        async function generateImage(e) {
+            e.preventDefault();
 
-function downloadImage(url, name) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name || 'generated-image.jpeg';
-    a.click();
-}
+            // تحقق من Rate Limit على الفرونت إند
+            if (!RateTracker.canRequest('image')) {
+                const resultSection = document.getElementById('imageResult');
+                const statusDiv = document.getElementById('imageStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = `⏳ تم تجاوز الحد. انتظر ${RateTracker.getResetTime('image')}`;
+                statusDiv.className = 'status rate-limited';
+                return;
+            }
 
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
+            const prompt = document.getElementById('imagePrompt').value;
+            const mode = document.getElementById('imageMode').value;
+            const count = parseInt(document.getElementById('imageCount').value);
 
-function newChat() {
-    document.getElementById('chatContainer').innerHTML = `<div class="welcome" id="welcomeScreen"><img src="logo.png" alt="Logo" class="welcome-logo"><h2>مرحباً بك في AI Media Studio</h2><p>اكتب وصفاً لتوليد صور أو فيديوهات بالذكاء الاصطناعي</p><div class="suggestions"><div class="suggestion-card" onclick="useSuggestion('image', 'A majestic dragon flying over a medieval castle at sunset, cinematic lighting, 8K quality')"><div class="icon">🖼️</div><div class="title">صورة فانتازيا</div><div class="desc">تنين يحلق فوق قلعة قروسطية</div></div><div class="suggestion-card" onclick="useSuggestion('video', 'A time-lapse of clouds moving over a mountain range at sunrise, cinematic drone shot')"><div class="icon">🎬</div><div class="title">فيديو سينمائي</div><div class="desc">غيوم فوق جبال عند الشروق</div></div><div class="suggestion-card" onclick="useSuggestion('image', 'A photorealistic portrait of a young woman with blue eyes, soft studio lighting, 8K')"><div class="icon">👤</div><div class="title">بورتريه واقعي</div><div class="desc">بورتريه شخص بجودة عالية</div></div><div class="suggestion-card" onclick="useSuggestion('video', 'Ocean waves crashing on a sandy beach at golden hour, slow motion')"><div class="icon">🌊</div><div class="title">فيديو طبيعي</div><div class="desc">أمواج البحر على الشاطئ</div></div></div></div>`;
-    if (window.innerWidth <= 768) toggleSidebar();
-}
+            // تحقق من المدخلات على الفرونت إند
+            if (count < 1 || count > 4) {
+                const resultSection = document.getElementById('imageResult');
+                const statusDiv = document.getElementById('imageStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ عدد الصور يجب أن يكون بين 1 و 4.';
+                statusDiv.className = 'status error';
+                return;
+            }
 
-function useSuggestion(mode, prompt) { setMode(mode); document.getElementById('promptInput').value = prompt; autoResize(document.getElementById('promptInput')); document.getElementById('promptInput').focus(); }
+            if (!prompt || prompt.length > 500) {
+                const resultSection = document.getElementById('imageResult');
+                const statusDiv = document.getElementById('imageStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ الوصف مطلوب ولا يتجاوز 500 حرف.';
+                statusDiv.className = 'status error';
+                return;
+            }
 
-// Init
-setMode('image');
-</script>
+            const resultSection = document.getElementById('imageResult');
+            const statusDiv = document.getElementById('imageStatus');
+            const contentDiv = document.getElementById('imageContent');
+
+            resultSection.classList.add('show');
+            statusDiv.innerHTML = '<span class="spinner"></span> جاري إرسال الطلب...';
+            statusDiv.className = 'status processing';
+            contentDiv.innerHTML = '';
+
+            RateTracker.increment('image');
+            updateRateDisplay();
+
+            try {
+                const payload = { prompt: prompt, mode: mode, n: count };
+
+                const response = await fetch(`${API_BASE_URL}/generate-image`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.status === 429) {
+                    statusDiv.innerHTML = '⏳ تم تجاوز الحد من الخادم. انتظر دقيقة واحدة.';
+                    statusDiv.className = 'status rate-limited';
+                    return;
+                }
+
+                if (data.status === 1 || data.code === 1) {
+                    throw new Error(data.message || 'خطأ من السيرفر أثناء توليد الصورة');
+                }
+
+                const instantImageUrl = data.data?.task_result?.images?.[0]?.url || data.task_result?.images?.[0]?.url || data.images?.[0]?.url;
+                if (instantImageUrl) {
+                    showImageSuccess(instantImageUrl, statusDiv, contentDiv);
+                    return;
+                }
+
+                const taskId = data.data?.task_id || data.task_id || data.data?.taskId || data.taskId;
+                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة');
+
+                await pollImageResult(taskId, statusDiv, contentDiv);
+            } catch (error) {
+                statusDiv.innerHTML = `✗ خطأ: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+
+        async function pollImageResult(taskId, statusDiv, contentDiv, attempts = 0) {
+            if (attempts > 60) {
+                statusDiv.innerHTML = '⏱ انتهت مهلة الانتظار. السيرفر مزدحم حالياً.';
+                statusDiv.className = 'status pending';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/query-image?t=${Date.now()}`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ taskId: taskId })
+                });
+
+                const data = await response.json();
+                
+                const rawStatus = data.data?.task_status || data.task_status || data.data?.status || data.status || '';
+                const status = String(rawStatus).toLowerCase();
+
+                if (data.status === 1 || data.code === 1 || status === 'failed' || status === 'error') {
+                    statusDiv.innerHTML = `✗ فشل إنشاء الصورة: ${data.message || 'خطأ غير معروف'}`;
+                    statusDiv.className = 'status error';
+                    return;
+                }
+
+                if (status === 'succeed' || status === 'success' || status === '0') {
+                    const imageUrl = data.data?.task_result?.images?.[0]?.url || 
+                                     data.task_result?.images?.[0]?.url || 
+                                     data.data?.images?.[0]?.url || 
+                                     data.data?.imageUrl ||
+                                     data.images?.[0]?.url;
+                    
+                    if (imageUrl) {
+                        showImageSuccess(imageUrl, statusDiv, contentDiv);
+                    } else {
+                        statusDiv.innerHTML = '✓ مكتمل ولكن لم يتم العثور على رابط الصورة';
+                        statusDiv.className = 'status error';
+                    }
+                    return;
+                } else {
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/60) - ${status || 'starting'}`;
+                    statusDiv.className = 'status processing';
+                    setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 5000); 
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `✗ خطأ في الاستعلام: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+
+        function showImageSuccess(url, statusDiv, contentDiv) {
+            statusDiv.innerHTML = '✓ تم إنشاء الصورة بنجاح';
+            statusDiv.className = 'status success';
+            contentDiv.innerHTML = `
+                <img src="${url}" alt="Generated Image" class="result-image" style="width: 100%; border-radius: 8px;">
+                <a href="${url}" target="_blank" class="result-link">تحميل الصورة</a>
+            `;
+        }
+
+        // ==========================================
+        // Video Generation Logic
+        // ==========================================
+        async function generateVideo(e) {
+            e.preventDefault();
+
+            // تحقق من Rate Limit على الفرونت إند
+            if (!RateTracker.canRequest('video')) {
+                const resultSection = document.getElementById('videoResult');
+                const statusDiv = document.getElementById('videoStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = `⏳ تم تجاوز الحد. انتظر ${RateTracker.getResetTime('video')}`;
+                statusDiv.className = 'status rate-limited';
+                return;
+            }
+
+            const prompt = document.getElementById('videoPrompt').value;
+            const duration = document.getElementById('videoDuration').value;
+            const aspect = document.getElementById('videoAspect').value;
+            const mode = document.getElementById('videoMode').value;
+            const sound = document.getElementById('videoSound').value;
+
+            // تحقق من المدخلات على الفرونت إند
+            const allowedDurations = ['5', '8', '15'];
+            if (!allowedDurations.includes(duration)) {
+                const resultSection = document.getElementById('videoResult');
+                const statusDiv = document.getElementById('videoStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ مدة الفيديو يجب أن تكون 5 أو 8 أو 15 ثانية فقط.';
+                statusDiv.className = 'status error';
+                return;
+            }
+
+            if (!prompt || prompt.length > 500) {
+                const resultSection = document.getElementById('videoResult');
+                const statusDiv = document.getElementById('videoStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ الوصف مطلوب ولا يتجاوز 500 حرف.';
+                statusDiv.className = 'status error';
+                return;
+            }
+
+            const resultSection = document.getElementById('videoResult');
+            const statusDiv = document.getElementById('videoStatus');
+            const contentDiv = document.getElementById('videoContent');
+
+            resultSection.classList.add('show');
+            statusDiv.innerHTML = '<span class="spinner"></span> جاري إرسال الطلب...';
+            statusDiv.className = 'status processing';
+            contentDiv.innerHTML = '';
+
+            RateTracker.increment('video');
+            updateRateDisplay();
+
+            try {
+                const payload = {
+                    prompt: prompt,
+                    duration: String(duration),
+                    aspect_ratio: aspect,
+                    sound: sound,
+                    mode: mode
+                };
+
+                const response = await fetch(`${API_BASE_URL}/generate-video`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.status === 429) {
+                    statusDiv.innerHTML = '⏳ تم تجاوز الحد من الخادم. انتظر دقيقة واحدة.';
+                    statusDiv.className = 'status rate-limited';
+                    return;
+                }
+
+                if (data.status === 1 || data.code === 1) {
+                    throw new Error(data.message || 'خطأ من السيرفر أثناء توليد الفيديو');
+                }
+
+                const instantVideoUrl = data.data?.task_result?.videos?.[0]?.url || data.task_result?.videos?.[0]?.url;
+                if (instantVideoUrl) {
+                    showVideoSuccess(instantVideoUrl, statusDiv, contentDiv);
+                    return;
+                }
+
+                const taskId = data.data?.task_id || data.task_id;
+                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة');
+
+                await pollVideoResult(taskId, statusDiv, contentDiv);
+            } catch (error) {
+                statusDiv.innerHTML = `✗ خطأ: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+
+        async function pollVideoResult(taskId, statusDiv, contentDiv, attempts = 0) {
+            if (attempts > 80) { 
+                statusDiv.innerHTML = '⏱ انتهت مهلة الانتظار. قد يستغرق الفيديو وقتاً أطول.';
+                statusDiv.className = 'status pending';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/query-video?t=${Date.now()}`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ taskId: taskId })
+                });
+
+                const data = await response.json();
+                
+                const rawStatus = data.data?.task_status || data.task_status || data.data?.status || data.status || '';
+                const status = String(rawStatus).toLowerCase();
+
+                if (data.status === 1 || data.code === 1 || status === 'failed' || status === 'error') {
+                    statusDiv.innerHTML = `✗ فشل إنشاء الفيديو: ${data.message || 'خطأ من السيرفر'}`;
+                    statusDiv.className = 'status error';
+                    return;
+                }
+
+                if (status === 'succeed' || status === 'success' || status === '0') {
+                    const videoUrl = data.data?.task_result?.videos?.[0]?.url || data.task_result?.videos?.[0]?.url;
+                    
+                    if (videoUrl) {
+                        showVideoSuccess(videoUrl, statusDiv, contentDiv);
+                    } else {
+                        statusDiv.innerHTML = '✓ مكتمل ولكن لم يتم العثور على رابط الفيديو';
+                        statusDiv.className = 'status error';
+                    }
+                    return;
+                } else {
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/80) - ${status || 'starting'}`;
+                    statusDiv.className = 'status processing';
+                    setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 5000);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `✗ خطأ في الاستعلام: ${error.message}`;
+                statusDiv.className = 'status error';
+            }
+        }
+
+        function showVideoSuccess(url, statusDiv, contentDiv) {
+            statusDiv.innerHTML = '✓ تم إنشاء الفيديو بنجاح';
+            statusDiv.className = 'status success';
+            contentDiv.innerHTML = `
+                <video controls autoplay loop class="result-video" style="max-height: 400px; width: 100%;">
+                    <source src="${url}" type="video/mp4">
+                </video>
+                <a href="${url}" target="_blank" class="result-link">تحميل الفيديو</a>
+            `;
+        }
+    </script>
 </body>
 </html>
