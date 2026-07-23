@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import serverless from 'serverless-http';
 import crypto from 'crypto';
 
 const app = express();
@@ -399,11 +398,6 @@ app.use((req: Request, res: Response) => {
 });
 
 // ========================================
-// EXPORT - Works both on Vercel (serverless) and locally (Express app)
+// EXPORT for Vercel - export default app directly
 // ========================================
-
-// For Vercel: exports handler (serverless-http wraps the Express app)
-export const handler = serverless(app);
-
-// For local development with server.js: exports the Express app directly
 export default app;
