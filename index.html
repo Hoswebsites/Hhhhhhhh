@@ -7,15 +7,14 @@
     <style>
         :root {
             --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
+            --card-bg: rgba(30, 41, 59, 0.85); /* خلفية شبه شفافة للكروت لتتناسب مع خلفية الموقع */
+            --card-border: rgba(255, 255, 255, 0.1);
             --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
+            --text-secondary: #cbd5e1;
             --accent-primary: #6366f1;
-            --accent-hover: #4f46e5;
             --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --input-bg: #0f172a;
-            --input-border: #334155;
+            --input-bg: rgba(15, 23, 42, 0.7);
+            --input-border: rgba(255, 255, 255, 0.15);
             --radius-lg: 16px;
             --radius-md: 10px;
         }
@@ -24,15 +23,22 @@
         
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-            background-color: var(--bg-color); 
             color: var(--text-primary); 
             line-height: 1.6; 
             min-height: 100vh;
+            
+            /* خلفية الموقع مع دمج الطبقة الشفافة */
+            background-color: var(--bg-color);
+            background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('YOUR_IMAGE_URL_HERE');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            background-attachment: fixed;
         }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
 
-        /* Header & Logo */
+        /* Header */
         header { 
             margin-bottom: 40px; 
             text-align: center; 
@@ -42,42 +48,17 @@
             gap: 12px;
         }
 
-        .logo-wrapper {
-            width: 72px;
-            height: 72px;
-            background: var(--accent-gradient);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
-            margin-bottom: 8px;
-            transition: transform 0.3s ease;
-        }
-
-        .logo-wrapper:hover {
-            transform: translateY(-3px) scale(1.02);
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            fill: white;
-        }
-
-        /* إذا أردت استخدام صورة لوجو جاهزة لديك، استبدل الـ SVG بالسطر التالي: */
-        /* .custom-logo { width: 72px; height: 72px; object-fit: contain; } */
-
         h1 { 
-            font-size: 32px; 
-            font-weight: 700; 
+            font-size: 36px; 
+            font-weight: 800; 
             letter-spacing: -0.5px; 
-            background: linear-gradient(to right, #ffffff, #94a3b8);
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        .subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 400; }
+        .subtitle { font-size: 16px; color: var(--text-secondary); font-weight: 400; }
 
         /* Main Content Layout */
         .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
@@ -85,10 +66,12 @@
 
         .section { 
             background: var(--card-bg); 
+            backdrop-filter: blur(12px); /* تأثير الزجاج الشفاف */
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--card-border); 
             border-radius: var(--radius-lg); 
             padding: 30px; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
         }
@@ -107,12 +90,12 @@
         .section-icon { font-size: 22px; }
 
         .info-box { 
-            background-color: rgba(99, 102, 241, 0.1); 
+            background-color: rgba(99, 102, 241, 0.15); 
             border-right: 4px solid var(--accent-primary); 
             padding: 12px 16px; 
             border-radius: 8px; 
             margin-bottom: 24px; 
-            color: #c7d2fe; 
+            color: #e0e7ff; 
             font-size: 13px; 
             line-height: 1.5; 
             text-align: center; 
@@ -146,7 +129,8 @@
         input:focus, textarea:focus, select:focus { 
             outline: none; 
             border-color: var(--accent-primary); 
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+            background-color: rgba(15, 23, 42, 0.9);
         }
 
         textarea { resize: vertical; min-height: 100px; }
@@ -173,7 +157,7 @@
             background: var(--accent-gradient); 
             color: white; 
             flex: 2; 
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
 
         .btn-primary:hover { 
@@ -182,13 +166,13 @@
         }
 
         .btn-secondary { 
-            background-color: #334155; 
+            background-color: rgba(255, 255, 255, 0.1); 
             color: var(--text-primary); 
             flex: 1; 
         }
 
         .btn-secondary:hover { 
-            background-color: #475569; 
+            background-color: rgba(255, 255, 255, 0.2); 
         }
 
         /* Results & Status */
@@ -223,10 +207,10 @@
             word-break: break-all; 
         }
 
-        .status.pending { background-color: rgba(245, 158, 11, 0.1); border-right-color: #f59e0b; color: #fbbf24; }
-        .status.success { background-color: rgba(16, 185, 129, 0.1); border-right-color: #10b981; color: #34d399; }
-        .status.error { background-color: rgba(239, 68, 68, 0.1); border-right-color: #ef4444; color: #f87171; }
-        .status.processing { background-color: rgba(59, 130, 246, 0.1); border-right-color: #3b82f6; color: #60a5fa; }
+        .status.pending { background-color: rgba(245, 158, 11, 0.15); border-right-color: #f59e0b; color: #fbbf24; }
+        .status.success { background-color: rgba(16, 185, 129, 0.15); border-right-color: #10b981; color: #34d399; }
+        .status.error { background-color: rgba(239, 68, 68, 0.15); border-right-color: #ef4444; color: #f87171; }
+        .status.processing { background-color: rgba(59, 130, 246, 0.15); border-right-color: #3b82f6; color: #60a5fa; }
 
         .result-image, .result-video { 
             width: 100%; 
@@ -280,12 +264,6 @@
 <body>
     <div class="container">
         <header>
-            <!-- اللوغو (SVG حديث احترافي) -->
-            <div class="logo-wrapper">
-                <svg class="logo-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/>
-                </svg>
-            </div>
             <h1>AI Media Generator</h1>
             <p class="subtitle">توليد الصور والفيديوهات بالذكاء الاصطناعي</p>
         </header>
@@ -433,7 +411,6 @@
 
                 const data = await response.json();
 
-                // التأكد من عدم وجود خطأ صريح من السيرفر قبل الإكمال
                 if (data.status === 1 || data.code === 1) {
                     throw new Error(data.message || 'خطأ من السيرفر أثناء توليد الصورة');
                 }
@@ -470,11 +447,9 @@
 
                 const data = await response.json();
                 
-                // منع انهيار الكود عن طريق تحويل القيمة لنص صريح قبل استخدام toLowerCase()
                 const rawStatus = data.data?.task_status || data.task_status || data.data?.status || data.status || '';
                 const status = String(rawStatus).toLowerCase();
 
-                // التحقق من أخطاء السيرفر (إذا كان status عبارة عن رقم 1 مثلاً)
                 if (data.status === 1 || data.code === 1 || status === 'failed' || status === 'error') {
                     statusDiv.innerHTML = `✗ فشل إنشاء الصورة: ${data.message || 'خطأ غير معروف'}`;
                     statusDiv.className = 'status error';
