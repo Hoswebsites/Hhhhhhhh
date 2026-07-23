@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Media Generator</title>
+    <title>مولد الوسائط بالذكاء الاصطناعي</title>
     <style>
         :root {
             --bg-color: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.85); /* خلفية شبه شفافة للكروت لتتناسب مع خلفية الموقع */
-            --card-border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(30, 41, 59, 0.78);
+            --card-border: rgba(255, 255, 255, 0.15);
             --text-primary: #f8fafc;
             --text-secondary: #cbd5e1;
             --accent-primary: #6366f1;
             --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --input-bg: rgba(15, 23, 42, 0.7);
-            --input-border: rgba(255, 255, 255, 0.15);
-            --radius-lg: 16px;
+            --input-bg: rgba(15, 23, 42, 0.8);
+            --input-border: rgba(255, 255, 255, 0.18);
+            --radius-lg: 18px;
             --radius-md: 10px;
         }
 
@@ -27,9 +27,10 @@
             line-height: 1.6; 
             min-height: 100vh;
             
-            /* خلفية الموقع مع دمج الطبقة الشفافة */
+            /* خلفية الموقع من ملف logo.png في نفس المجلد */
             background-color: var(--bg-color);
-            background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('YOUR_IMAGE_URL_HERE');
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), 
+                              url('logo.png');
             background-repeat: no-repeat;
             background-position: center center;
             background-size: cover;
@@ -48,8 +49,25 @@
             gap: 12px;
         }
 
+        .main-logo {
+            max-width: 90px;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+            margin-bottom: 8px;
+        }
+
+        .section-logo {
+            max-height: 55px;
+            width: auto;
+            object-fit: contain;
+            margin: 0 auto 15px auto;
+            display: block;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+        }
+
         h1 { 
-            font-size: 36px; 
+            font-size: 34px; 
             font-weight: 800; 
             letter-spacing: -0.5px; 
             background: linear-gradient(to right, #ffffff, #cbd5e1);
@@ -58,7 +76,7 @@
             text-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        .subtitle { font-size: 16px; color: var(--text-secondary); font-weight: 400; }
+        .subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 400; }
 
         /* Main Content Layout */
         .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
@@ -66,12 +84,12 @@
 
         .section { 
             background: var(--card-bg); 
-            backdrop-filter: blur(12px); /* تأثير الزجاج الشفاف */
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--card-border); 
             border-radius: var(--radius-lg); 
             padding: 30px; 
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             display: flex;
             flex-direction: column;
         }
@@ -90,7 +108,7 @@
         .section-icon { font-size: 22px; }
 
         .info-box { 
-            background-color: rgba(99, 102, 241, 0.15); 
+            background-color: rgba(99, 102, 241, 0.18); 
             border-right: 4px solid var(--accent-primary); 
             padding: 12px 16px; 
             border-radius: 8px; 
@@ -129,8 +147,8 @@
         input:focus, textarea:focus, select:focus { 
             outline: none; 
             border-color: var(--accent-primary); 
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
-            background-color: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+            background-color: rgba(15, 23, 42, 0.95);
         }
 
         textarea { resize: vertical; min-height: 100px; }
@@ -157,7 +175,7 @@
             background: var(--accent-gradient); 
             color: white; 
             flex: 2; 
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
         }
 
         .btn-primary:hover { 
@@ -166,7 +184,7 @@
         }
 
         .btn-secondary { 
-            background-color: rgba(255, 255, 255, 0.1); 
+            background-color: rgba(255, 255, 255, 0.12); 
             color: var(--text-primary); 
             flex: 1; 
         }
@@ -264,16 +282,20 @@
 <body>
     <div class="container">
         <header>
-            <h1>AI Media Generator</h1>
-            <p class="subtitle">توليد الصور والفيديوهات بالذكاء الاصطناعي</p>
+            <img src="logo.png" alt="Logo" class="main-logo">
+            <h1>مولد الوسائط بالذكاء الاصطناعي</h1>
+            <p class="subtitle">توليد الصور والفيديوهات بضغطة زر</p>
         </header>
 
         <div class="main-content">
             <!-- قسم الصور -->
             <div class="section">
+                <!-- صورة الشعار من الأعلى لقسم الصور -->
+                <img src="logo.png" alt="Logo" class="section-logo">
+
                 <h2>
                     <span class="section-icon">🖼️</span>
-                    Image Generation
+                    توليد الصور
                 </h2>
 
                 <div class="info-box">
@@ -282,32 +304,32 @@
 
                 <form onsubmit="generateImage(event)">
                     <div class="form-group">
-                        <label for="imagePrompt">Description</label>
+                        <label for="imagePrompt">الوصف</label>
                         <textarea id="imagePrompt" placeholder="مثال: قطة تلعب في حديقة خضراء وقت الغروب" required></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="imageMode">Quality</label>
+                            <label for="imageMode">الجودة</label>
                             <select id="imageMode">
-                                <option value="lite">Standard</option>
-                                <option value="pro">Professional</option>
+                                <option value="lite">قياسي (Standard)</option>
+                                <option value="pro">احترافي (Professional)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="imageCount">Count</label>
+                            <label for="imageCount">عدد الصور</label>
                             <input type="number" id="imageCount" value="1" min="1" max="4">
                         </div>
                     </div>
 
                     <div class="button-group">
-                        <button type="reset" class="btn-secondary">Clear</button>
-                        <button type="submit" class="btn-primary">Generate</button>
+                        <button type="reset" class="btn-secondary">مسح</button>
+                        <button type="submit" class="btn-primary">توليد</button>
                     </div>
                 </form>
 
                 <div id="imageResult" class="result-section">
-                    <h3>Result</h3>
+                    <h3>النتيجة</h3>
                     <div id="imageStatus" class="status"></div>
                     <div id="imageContent"></div>
                 </div>
@@ -315,9 +337,12 @@
 
             <!-- قسم الفيديو -->
             <div class="section">
+                <!-- صورة الشعار من الأعلى لقسم الفيديو -->
+                <img src="logo.png" alt="Logo" class="section-logo">
+
                 <h2>
                     <span class="section-icon">🎬</span>
-                    Video Generation
+                    توليد الفيديو
                 </h2>
 
                 <div class="info-box">
@@ -326,51 +351,51 @@
 
                 <form onsubmit="generateVideo(event)">
                     <div class="form-group">
-                        <label for="videoPrompt">Description</label>
+                        <label for="videoPrompt">الوصف</label>
                         <textarea id="videoPrompt" placeholder="مثال: أمواج البحر تضرب الشاطئ الرملي" required></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="videoDuration">Duration (seconds)</label>
+                            <label for="videoDuration">المدة (بالثواني)</label>
                             <input type="number" id="videoDuration" value="5" min="1" max="60">
                         </div>
                         <div class="form-group">
-                            <label for="videoAspect">Aspect Ratio</label>
+                            <label for="videoAspect">أبعاد الفيديو</label>
                             <select id="videoAspect">
-                                <option value="9:16">9:16 (Portrait)</option>
-                                <option value="16:9">16:9 (Widescreen)</option>
-                                <option value="1:1">1:1 (Square)</option>
-                                <option value="4:3">4:3 (Standard)</option>
+                                <option value="9:16">9:16 (عمودي - Portrait)</option>
+                                <option value="16:9">16:9 (عريض - Widescreen)</option>
+                                <option value="1:1">1:1 (مربع - Square)</option>
+                                <option value="4:3">4:3 (قياسي - Standard)</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="videoMode">Quality</label>
+                            <label for="videoMode">الجودة</label>
                             <select id="videoMode">
-                                <option value="pro">Professional</option>
-                                <option value="lite">Standard</option>
+                                <option value="pro">احترافي (Professional)</option>
+                                <option value="lite">قياسي (Standard)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="videoSound">Audio</label>
+                            <label for="videoSound">الصوت</label>
                             <select id="videoSound">
-                                <option value="on">Enabled</option>
-                                <option value="off">Disabled</option>
+                                <option value="on">مفعل</option>
+                                <option value="off">معطل</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="button-group">
-                        <button type="reset" class="btn-secondary">Clear</button>
-                        <button type="submit" class="btn-primary">Generate</button>
+                        <button type="reset" class="btn-secondary">مسح</button>
+                        <button type="submit" class="btn-primary">توليد</button>
                     </div>
                 </form>
 
                 <div id="videoResult" class="result-section">
-                    <h3>Result</h3>
+                    <h3>النتيجة</h3>
                     <div id="videoStatus" class="status"></div>
                     <div id="videoContent"></div>
                 </div>
