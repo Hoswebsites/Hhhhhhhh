@@ -3,10 +3,14 @@ import express, { Request, Response, NextFunction } from 'express';
 const app = express();
 app.use(express.json());
 
-// Hardcoded Supabase Credentials (As requested for direct integration)
+// Hardcoded Supabase Credentials
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFueXpnY3pscmJveXJhc3RzYm1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTE3MzIsImV4cCI6MjA5MTQ2NzczMn0.fRBx8v2WsEYj8iKIQNifanXYYSdH87OKzBp6P1alAJQ";
+
+// Endpoints
 const SUPABASE_IMAGE_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/image-generation";
 const SUPABASE_VIDEO_ROUTER_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/video-router";
+// الرابط الجديد الذي اكتشفناه من الكود الخاص بك المخصص للاستعلام
+const SUPABASE_VIDEO_QUERY_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/video-router-query";
 
 // CORS middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -20,14 +24,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-// Helper function to handle Supabase Edge Function calls (تمت إضافة no-store لمنع كاش Vercel)
+// Helper function to handle Supabase Edge Function calls
 async function callSupabaseEdgeFunction(url: string, payload: any, headers: any) {
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(payload),
-            cache: 'no-store'
+            cache: 'no-store' // منع Vercel من تخزين الرد (Caching)
         });
         
         const contentType = response.headers.get("content-type");
@@ -43,7 +47,10 @@ async function callSupabaseEdgeFunction(url: string, payload: any, headers: any)
     }
 }
 
-// Image Generation Endpoint
+// ----------------------------------------
+// Image Generation Endpoints
+// ----------------------------------------
+
 app.post('/api/generate-image', async (req: Request, res: Response) => {
     try {
         const { prompt, mode, n } = req.body;
@@ -72,7 +79,6 @@ app.post('/api/generate-image', async (req: Request, res: Response) => {
     }
 });
 
-// Image Query Endpoint
 app.post('/api/query-image', async (req: Request, res: Response) => {
     try {
         const { taskId } = req.body;
@@ -99,7 +105,10 @@ app.post('/api/query-image', async (req: Request, res: Response) => {
     }
 });
 
-// Video Generation Endpoint
+// ----------------------------------------
+// Video Generation Endpoints
+// ----------------------------------------
+
 app.post('/api/generate-video', async (req: Request, res: Response) => {
     try {
         const { prompt, duration, aspect_ratio, sound, mode } = req.body;
@@ -109,14 +118,14 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
             "apikey": SUPABASE_ANON_KEY
         };
 
+        // تم التطابق مع الـ Payload في كود الـ HTML
         const payload = {
-            action: "submit",
             prompt: prompt,
             duration: String(duration),
             aspect_ratio: aspect_ratio,
             sound: sound,
             mode: mode,
-            audio_enabled: (sound === 'on'),
+            audio_enabled: (sound === 'on'), 
             project_id: "slave-51"
         };
 
@@ -127,7 +136,6 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
     }
 });
 
-// Video Query Endpoint
 app.post('/api/query-video', async (req: Request, res: Response) => {
     try {
         const { taskId } = req.body;
@@ -137,13 +145,14 @@ app.post('/api/query-video', async (req: Request, res: Response) => {
             "apikey": SUPABASE_ANON_KEY
         };
 
+        // تم التطابق مع الـ Payload في كود الـ HTML المخصص للاستعلام
         const payload = {
-            action: "query",
-            taskId: taskId,
+            task_id: taskId,
             project_id: 51
         };
 
-        const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_ROUTER_URL, payload, headers);
+        // استخدام الرابط المخصص للاستعلام SUPABASE_VIDEO_QUERY_URL بدلاً من رابط الإنشاء
+        const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_QUERY_URL, payload, headers);
         res.json(data);
     } catch (error: any) {
         res.status(500).json({ status: 1, message: error.message || 'Internal Server Error' });
