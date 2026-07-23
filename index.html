@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Media Generator</title>
     <style>
-        /* (نفس تنسيقات الـ CSS السابقة تماماً لحفظ التصميم) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; background-color: #f5f5f5; color: #1a1a1a; line-height: 1.6; }
         .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
@@ -168,7 +167,7 @@
         const API_BASE_URL = '/api';
 
         // ==========================================
-        // Image Generation Logic (تم الإصلاح ليتطابق مع الفيديو)
+        // Image Generation Logic
         // ==========================================
         async function generateImage(e) {
             e.preventDefault();
@@ -197,16 +196,19 @@
 
                 const data = await response.json();
 
-                // 1. التحقق لو الصورة رجعت فوراً
-                const instantImageUrl = data.data?.task_result?.images?.[0]?.url || data.task_result?.images?.[0]?.url;
+                // التأكد من عدم وجود خطأ صريح من السيرفر قبل الإكمال
+                if (data.status === 1 || data.code === 1) {
+                    throw new Error(data.message || 'خطأ من السيرفر أثناء توليد الصورة');
+                }
+
+                const instantImageUrl = data.data?.task_result?.images?.[0]?.url || data.task_result?.images?.[0]?.url || data.images?.[0]?.url;
                 if (instantImageUrl) {
                     showImageSuccess(instantImageUrl, statusDiv, contentDiv);
                     return;
                 }
 
-                // 2. استخراج ID الصورة
                 const taskId = data.data?.task_id || data.task_id || data.data?.taskId || data.taskId;
-                if (!taskId) throw new Error(data.message || 'No task ID received from server');
+                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة (Task ID)');
 
                 await pollImageResult(taskId, statusDiv, contentDiv);
             } catch (error) {
@@ -231,15 +233,23 @@
 
                 const data = await response.json();
                 
-                // قراءة الحالة بنفس الطريقة الذكية الخاصة بالفيديو
-                const status = (data.data?.task_status || data.task_status || data.data?.status || data.status || '').toLowerCase();
+                // منع انهيار الكود عن طريق تحويل القيمة لنص صريح قبل استخدام toLowerCase()
+                const rawStatus = data.data?.task_status || data.task_status || data.data?.status || data.status || '';
+                const status = String(rawStatus).toLowerCase();
 
-                if (status === 'succeed' || status === 'success') {
-                    // استخراج الرابط من المسارات المتعددة المتوقعة
+                // التحقق من أخطاء السيرفر (إذا كان status عبارة عن رقم 1 مثلاً)
+                if (data.status === 1 || data.code === 1 || status === 'failed' || status === 'error') {
+                    statusDiv.innerHTML = `✗ فشل إنشاء الصورة: ${data.message || 'خطأ غير معروف'}`;
+                    statusDiv.className = 'status error';
+                    return;
+                }
+
+                if (status === 'succeed' || status === 'success' || status === '0') {
                     const imageUrl = data.data?.task_result?.images?.[0]?.url || 
                                      data.task_result?.images?.[0]?.url || 
                                      data.data?.images?.[0]?.url || 
-                                     data.data?.imageUrl;
+                                     data.data?.imageUrl ||
+                                     data.images?.[0]?.url;
                     
                     if (imageUrl) {
                         showImageSuccess(imageUrl, statusDiv, contentDiv);
@@ -248,11 +258,7 @@
                         statusDiv.className = 'status error';
                     }
                     return;
-                } else if (status === 'failed' || status === 'error') {
-                    statusDiv.innerHTML = '✗ فشل إنشاء الصورة من السيرفر';
-                    statusDiv.className = 'status error';
                 } else {
-                    // التحقق كل 5 ثواني
                     statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/60) - ${status || 'starting'}`;
                     statusDiv.className = 'status processing';
                     setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 5000); 
@@ -310,14 +316,18 @@
 
                 const data = await response.json();
 
-                const instantVideoUrl = data.data?.task_result?.videos?.[0]?.url;
+                if (data.status === 1 || data.code === 1) {
+                    throw new Error(data.message || 'خطأ من السيرفر أثناء توليد الفيديو');
+                }
+
+                const instantVideoUrl = data.data?.task_result?.videos?.[0]?.url || data.task_result?.videos?.[0]?.url;
                 if (instantVideoUrl) {
                     showVideoSuccess(instantVideoUrl, statusDiv, contentDiv);
                     return;
                 }
 
                 const taskId = data.data?.task_id || data.task_id;
-                if (!taskId) throw new Error(data.message || 'لم يتم استلام task_id من السيرفر');
+                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة (Task ID)');
 
                 await pollVideoResult(taskId, statusDiv, contentDiv);
             } catch (error) {
@@ -341,10 +351,18 @@
                 });
 
                 const data = await response.json();
-                const status = (data.data?.task_status || data.task_status || '').toLowerCase();
+                
+                const rawStatus = data.data?.task_status || data.task_status || data.data?.status || data.status || '';
+                const status = String(rawStatus).toLowerCase();
 
-                if (status === 'succeed' || status === 'success') {
-                    const videoUrl = data.data?.task_result?.videos?.[0]?.url;
+                if (data.status === 1 || data.code === 1 || status === 'failed' || status === 'error') {
+                    statusDiv.innerHTML = `✗ فشل إنشاء الفيديو: ${data.message || 'خطأ من السيرفر'}`;
+                    statusDiv.className = 'status error';
+                    return;
+                }
+
+                if (status === 'succeed' || status === 'success' || status === '0') {
+                    const videoUrl = data.data?.task_result?.videos?.[0]?.url || data.task_result?.videos?.[0]?.url;
                     
                     if (videoUrl) {
                         showVideoSuccess(videoUrl, statusDiv, contentDiv);
@@ -353,11 +371,7 @@
                         statusDiv.className = 'status error';
                     }
                     return;
-                } else if (status === 'failed' || status === 'error') {
-                    statusDiv.innerHTML = '✗ فشل إنشاء الفيديو';
-                    statusDiv.className = 'status error';
                 } else {
-                    // التحقق كل 5 ثواني
                     statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/80) - ${status || 'starting'}`;
                     statusDiv.className = 'status processing';
                     setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 5000);
