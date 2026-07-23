@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json({ limit: '10kb' }));
 
 // ========================================
-// مفاتيح Supabase (نفس المفاتيح المستخدمة في حمزاوي)
+// مفاتيح Supabase 
 // ========================================
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFueXpnY3pscmJveXJhc3RzYm1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTE3MzIsImV4cCI6MjA5MTQ2NzczMn0.fRBx8v2WsEYj8iKIQNifanXYYSdH87OKzBp6P1alAJQ";
 const SUPABASE_BASE = "https://anyzgczlrboyrastsbmf.supabase.co";
@@ -59,7 +59,7 @@ function checkRateLimit(fingerprint: string, limit: number, window: number): { a
     return { allowed: true, resetAt: entry.firstRequest + window };
 }
 
-// تنظيف دوري
+// تنظيف دوري للـ Rate Limit
 setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of rateLimitMap) {
@@ -76,7 +76,6 @@ const ALLOWED_ORIGIN = "https://hostools.vercel.app";
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
-    const referer = req.headers.referer;
 
     // CORS Headers
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
@@ -84,7 +83,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Access-Control-Max-Age', '3600');
 
-    // رفض الطلبات من دومينات أخرى (مع السماح بالطلبات من نفس الدومين بدون Origin)
+    // رفض الطلبات من دومينات أخرى
     if (origin && origin !== ALLOWED_ORIGIN) {
         return res.status(403).json({
             status: 1,
@@ -101,11 +100,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ========================================
-// دالة تنظيف الاستجابة (منع تسريب معلومات Supabase)
+// دالة تنظيف الاستجابة ومعالجة الـ Base64 للصور
 // ========================================
-function sanitizeResponse(data: any): any {
+function formatAndSanitizeResponse(data: any): any {
     if (!data || typeof data !== 'object') return data;
 
+    // 1. تنظيف البيانات من معلومات Supabase الحساسة
     const fieldsToRemove = [
         'metadata', 'usedUrl', 'isBackup',
         '_router', '_debug_used_existing_supabase_url',
@@ -115,22 +115,29 @@ function sanitizeResponse(data: any): any {
         'request_id', 'x-ratelimit'
     ];
 
-    const cleanData = JSON.parse(JSON.stringify(data));
+    let cleanData = JSON.parse(JSON.stringify(data)); // Deep Copy
 
-    for (const field of fieldsToRemove) {
-        delete cleanData[field];
-    }
+    for (const field of fieldsToRemove) { delete cleanData[field]; }
+    if (cleanData.data) { for (const field of fieldsToRemove) { delete cleanData.data[field]; } }
+    if (cleanData.data?.data) { for (const field of fieldsToRemove) { delete cleanData.data.data[field]; } }
 
-    if (cleanData.data) {
-        for (const field of fieldsToRemove) {
-            delete cleanData.data[field];
+    // 2. استخراج صورة Base64 وتجهيزها للـ Frontend (الحل للمشكلة المكتشفة)
+    try {
+        // البحث عن Base64 في المسار الذي ذكرته
+        const base64Image = cleanData?.data?.result?.content?.[0]?.image?.data;
+        
+        if (base64Image) {
+            // إضافة المتغير image_url في الجذر لسهولة الوصول من الـ Frontend
+            cleanData.image_url = `data:image/jpeg;base64,${base64Image}`;
+            cleanData.is_ready = true; // لتسهيل الفحص في الواجهة
+        } 
+        // في حال تم إرجاع URL عادي في المستقبل
+        else if (cleanData?.data?.url || cleanData?.url) {
+            cleanData.image_url = cleanData?.data?.url || cleanData?.url;
+            cleanData.is_ready = true;
         }
-    }
-
-    if (cleanData.data?.data) {
-        for (const field of fieldsToRemove) {
-            delete cleanData.data.data[field];
-        }
+    } catch (e) {
+        console.error("Error formatting image response:", e);
     }
 
     return cleanData;
@@ -138,7 +145,6 @@ function sanitizeResponse(data: any): any {
 
 // ========================================
 // Helper: الاتصال بـ Supabase Edge Function
-// (بنفس طريقة حمزاوي: Authorization + apikey بدون project_id للصور)
 // ========================================
 async function callSupabaseEdgeFunction(url: string, payload: any): Promise<any> {
     const response = await fetch(url, {
@@ -162,38 +168,25 @@ async function callSupabaseEdgeFunction(url: string, payload: any): Promise<any>
 }
 
 // ========================================
-// توليد صورة (بنفس آلية حمزاوي - بدون project_id)
+// توليد صورة 
 // ========================================
 app.post('/api/generate-image', async (req: Request, res: Response) => {
     try {
-        // Rate Limiting
         const fingerprint = generateFingerprint(req);
         const rl = checkRateLimit(fingerprint, IMAGE_RATE_LIMIT, IMAGE_RATE_WINDOW);
         if (!rl.allowed) {
-            return res.status(429).json({
-                status: 1,
-                message: "تم تجاوز الحد المسموح. يمكنك إرسال 3 طلبات في الدقيقة."
-            });
+            return res.status(429).json({ status: 1, message: "تم تجاوز الحد المسموح. يمكنك إرسال 3 طلبات في الدقيقة." });
         }
 
         const { prompt, mode, n } = req.body;
 
-        // التحقق من المدخلات
-        if (!prompt || typeof prompt !== 'string') {
-            return res.status(400).json({ status: 1, message: 'الوصف مطلوب' });
-        }
-        if (prompt.length > 500) {
-            return res.status(400).json({ status: 1, message: 'الوصف طويل جداً. الحد الأقصى 500 حرف.' });
-        }
-        if (!['lite', 'pro'].includes(mode)) {
-            return res.status(400).json({ status: 1, message: 'وضع غير صالح. يجب اختيار lite أو pro.' });
-        }
+        if (!prompt || typeof prompt !== 'string') return res.status(400).json({ status: 1, message: 'الوصف مطلوب' });
+        if (prompt.length > 500) return res.status(400).json({ status: 1, message: 'الوصف طويل جداً.' });
+        if (!['lite', 'pro'].includes(mode)) return res.status(400).json({ status: 1, message: 'وضع غير صالح.' });
+        
         const count = parseInt(n);
-        if (isNaN(count) || count < 1 || count > 4) {
-            return res.status(400).json({ status: 1, message: 'عدد الصور يجب أن يكون بين 1 و 4.' });
-        }
+        if (isNaN(count) || count < 1 || count > 4) return res.status(400).json({ status: 1, message: 'عدد الصور غير صالح.' });
 
-        // Payload بنفس هيكل حمزاوي - بدون project_id
         const payload = {
             action: "submit",
             mode: mode,
@@ -202,7 +195,7 @@ app.post('/api/generate-image', async (req: Request, res: Response) => {
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_IMAGE_URL, payload);
-        res.json(sanitizeResponse(data));
+        res.json(formatAndSanitizeResponse(data));
     } catch (error: any) {
         console.error('Image generation error:', error.message);
         res.status(500).json({ status: 1, message: 'خطأ في الخادم. حاول مرة أخرى.' });
@@ -210,26 +203,23 @@ app.post('/api/generate-image', async (req: Request, res: Response) => {
 });
 
 // ========================================
-// استعلام حالة الصورة (بنفس آلية حمزاوي - بدون project_id)
+// استعلام حالة الصورة 
 // ========================================
 app.post('/api/query-image', async (req: Request, res: Response) => {
     try {
         const { taskId } = req.body;
-        if (!taskId || typeof taskId !== 'string') {
-            return res.status(400).json({ status: 1, message: 'taskId مطلوب' });
-        }
-        if (taskId.length > 60) {
-            return res.status(400).json({ status: 1, message: 'taskId غير صالح' });
+        if (!taskId || typeof taskId !== 'string' || taskId.length > 60) {
+            return res.status(400).json({ status: 1, message: 'taskId غير صالح أو مفقود' });
         }
 
-        // Payload بنفس هيكل حمزاوي - بدون project_id
         const payload = {
             action: "query",
             taskId: taskId
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_IMAGE_URL, payload);
-        res.json(sanitizeResponse(data));
+        // الدالة formatAndSanitizeResponse ستقوم باكتشاف الـ Base64 هنا وإرجاعه كـ URL
+        res.json(formatAndSanitizeResponse(data));
     } catch (error: any) {
         console.error('Image query error:', error.message);
         res.status(500).json({ status: 1, message: 'خطأ في الخادم.' });
@@ -237,57 +227,33 @@ app.post('/api/query-image', async (req: Request, res: Response) => {
 });
 
 // ========================================
-// توليد فيديو (مع project_id لأن حمزاوي يستخدمه في الفيديو)
+// توليد فيديو
 // ========================================
 app.post('/api/generate-video', async (req: Request, res: Response) => {
     try {
-        // Rate Limiting (أقل - 2 طلبات في الدقيقة)
         const fingerprint = generateFingerprint(req) + '_video';
         const rl = checkRateLimit(fingerprint, VIDEO_RATE_LIMIT, VIDEO_RATE_WINDOW);
         if (!rl.allowed) {
-            return res.status(429).json({
-                status: 1,
-                message: "تم تجاوز الحد المسموح. يمكنك إرسال 2 طلب فيديو في الدقيقة."
-            });
+            return res.status(429).json({ status: 1, message: "تم تجاوز الحد المسموح. 2 طلب فيديو بالدقيقة." });
         }
 
         const { prompt, duration, aspect_ratio, sound, mode } = req.body;
 
-        // التحقق الصارم من المدخلات
-        if (!prompt || typeof prompt !== 'string') {
-            return res.status(400).json({ status: 1, message: 'الوصف مطلوب' });
-        }
-        if (prompt.length > 500) {
-            return res.status(400).json({ status: 1, message: 'الوصف طويل جداً. الحد الأقصى 500 حرف.' });
+        if (!prompt || typeof prompt !== 'string' || prompt.length > 500) {
+            return res.status(400).json({ status: 1, message: 'الوصف غير صالح.' });
         }
 
-        // تحديد المدة المسموحة فقط: 5 أو 8 أو 15 ثانية
         const allowedDurations = ['5', '8', '15', 5, 8, 15];
         const durValue = String(duration).trim();
-        if (!allowedDurations.includes(durValue) && !allowedDurations.includes(parseInt(durValue))) {
-            return res.status(400).json({
-                status: 1,
-                message: 'مدة الفيديو يجب أن تكون 5 أو 8 أو 15 ثانية فقط.'
-            });
+        if (!allowedDurations.includes(durValue)) {
+            return res.status(400).json({ status: 1, message: 'المدة يجب أن تكون 5, 8, أو 15 ثانية.' });
         }
 
-        // التحقق من أبعاد الفيديو
         const allowedAspects = ['9:16', '16:9', '1:1', '4:3'];
-        if (!allowedAspects.includes(aspect_ratio)) {
-            return res.status(400).json({ status: 1, message: 'أبعاد الفيديو غير صالحة.' });
-        }
+        if (!allowedAspects.includes(aspect_ratio)) return res.status(400).json({ status: 1, message: 'أبعاد غير صالحة.' });
+        if (!['lite', 'pro'].includes(mode)) return res.status(400).json({ status: 1, message: 'وضع غير صالح.' });
+        if (!['on', 'off'].includes(sound)) return res.status(400).json({ status: 1, message: 'إعداد الصوت غير صالح.' });
 
-        // التحقق من الوضع
-        if (!['lite', 'pro'].includes(mode)) {
-            return res.status(400).json({ status: 1, message: 'وضع غير صالح.' });
-        }
-
-        // التحقق من الصوت
-        if (!['on', 'off'].includes(sound)) {
-            return res.status(400).json({ status: 1, message: 'إعداد الصوت غير صالح.' });
-        }
-
-        // Payload الفيديو (حمزاوي يرسل project_id للفيديو)
         const payload = {
             prompt: prompt.trim(),
             duration: durValue,
@@ -299,10 +265,10 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_ROUTER_URL, payload);
-        res.json(sanitizeResponse(data));
+        res.json(formatAndSanitizeResponse(data)); // نمررها لنفس الدالة لتنظيف الـ Headers
     } catch (error: any) {
         console.error('Video generation error:', error.message);
-        res.status(500).json({ status: 1, message: 'خطأ في الخادم. حاول مرة أخرى.' });
+        res.status(500).json({ status: 1, message: 'خطأ في الخادم.' });
     }
 });
 
@@ -312,10 +278,7 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
 app.post('/api/query-video', async (req: Request, res: Response) => {
     try {
         const { taskId } = req.body;
-        if (!taskId || typeof taskId !== 'string') {
-            return res.status(400).json({ status: 1, message: 'taskId مطلوب' });
-        }
-        if (taskId.length > 60) {
+        if (!taskId || typeof taskId !== 'string' || taskId.length > 60) {
             return res.status(400).json({ status: 1, message: 'taskId غير صالح' });
         }
 
@@ -325,7 +288,7 @@ app.post('/api/query-video', async (req: Request, res: Response) => {
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_QUERY_URL, payload);
-        res.json(sanitizeResponse(data));
+        res.json(formatAndSanitizeResponse(data));
     } catch (error: any) {
         console.error('Video query error:', error.message);
         res.status(500).json({ status: 1, message: 'خطأ في الخادم.' });
