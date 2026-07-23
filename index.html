@@ -78,6 +78,46 @@
 
         .subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 400; }
 
+        /* Rate Limit Banner */
+        .rate-banner {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .rate-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rate-info .icon {
+            font-size: 18px;
+        }
+
+        .rate-info .label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .rate-info .count {
+            color: #60a5fa;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        .rate-info .reset-time {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
         /* Main Content Layout */
         .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
@@ -92,6 +132,11 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             display: flex;
             flex-direction: column;
+        }
+
+        .section.disabled {
+            opacity: 0.5;
+            pointer-events: none;
         }
 
         .section h2 { 
@@ -183,6 +228,12 @@
             transform: translateY(-1px);
         }
 
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary { 
             background-color: rgba(255, 255, 255, 0.12); 
             color: var(--text-primary); 
@@ -229,6 +280,7 @@
         .status.success { background-color: rgba(16, 185, 129, 0.15); border-right-color: #10b981; color: #34d399; }
         .status.error { background-color: rgba(239, 68, 68, 0.15); border-right-color: #ef4444; color: #f87171; }
         .status.processing { background-color: rgba(59, 130, 246, 0.15); border-right-color: #3b82f6; color: #60a5fa; }
+        .status.rate-limited { background-color: rgba(168, 85, 247, 0.15); border-right-color: #a855f7; color: #c084fc; }
 
         .result-image, .result-video { 
             width: 100%; 
@@ -287,10 +339,25 @@
             <p class="subtitle">توليد الصور والفيديوهات بضغطة زر</p>
         </header>
 
+        <!-- شريط عرض حد الطلبات -->
+        <div class="rate-banner">
+            <div class="rate-info">
+                <span class="icon">🖼️</span>
+                <span class="label">الصور:</span>
+                <span class="count" id="imageCountDisplay">0</span>/<span>3</span>
+                <span class="reset-time" id="imageResetTime"></span>
+            </div>
+            <div class="rate-info">
+                <span class="icon">🎬</span>
+                <span class="label">الفيديو:</span>
+                <span class="count" id="videoCountDisplay">0</span>/<span>2</span>
+                <span class="reset-time" id="videoResetTime"></span>
+            </div>
+        </div>
+
         <div class="main-content">
             <!-- قسم الصور -->
-            <div class="section">
-                <!-- صورة الشعار من الأعلى لقسم الصور -->
+            <div class="section" id="imageSection">
                 <img src="logo.jpg" alt="Logo" class="section-logo">
 
                 <h2>
@@ -305,7 +372,7 @@
                 <form onsubmit="generateImage(event)">
                     <div class="form-group">
                         <label for="imagePrompt">الوصف</label>
-                        <textarea id="imagePrompt" placeholder="مثال: قطة تلعب في حديقة خضراء وقت الغروب" required></textarea>
+                        <textarea id="imagePrompt" placeholder="مثال: قطة تلعب في حديقة خضراء وقت الغروب" required maxlength="500"></textarea>
                     </div>
 
                     <div class="form-row">
@@ -317,14 +384,14 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="imageCount">عدد الصور</label>
+                            <label for="imageCount">عدد الصور (1-4)</label>
                             <input type="number" id="imageCount" value="1" min="1" max="4">
                         </div>
                     </div>
 
                     <div class="button-group">
                         <button type="reset" class="btn-secondary">مسح</button>
-                        <button type="submit" class="btn-primary">توليد</button>
+                        <button type="submit" class="btn-primary" id="imageSubmitBtn">توليد</button>
                     </div>
                 </form>
 
@@ -336,8 +403,7 @@
             </div>
 
             <!-- قسم الفيديو -->
-            <div class="section">
-                <!-- صورة الشعار من الأعلى لقسم الفيديو -->
+            <div class="section" id="videoSection">
                 <img src="logo.jpg" alt="Logo" class="section-logo">
 
                 <h2>
@@ -352,13 +418,17 @@
                 <form onsubmit="generateVideo(event)">
                     <div class="form-group">
                         <label for="videoPrompt">الوصف</label>
-                        <textarea id="videoPrompt" placeholder="مثال: أمواج البحر تضرب الشاطئ الرملي" required></textarea>
+                        <textarea id="videoPrompt" placeholder="مثال: أمواج البحر تضرب الشاطئ الرملي" required maxlength="500"></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="videoDuration">المدة (بالثواني)</label>
-                            <input type="number" id="videoDuration" value="5" min="1" max="60">
+                            <select id="videoDuration">
+                                <option value="5">5 ثوانٍ</option>
+                                <option value="8">8 ثوانٍ</option>
+                                <option value="15">15 ثانية</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="videoAspect">أبعاد الفيديو</label>
@@ -390,7 +460,7 @@
 
                     <div class="button-group">
                         <button type="reset" class="btn-secondary">مسح</button>
-                        <button type="submit" class="btn-primary">توليد</button>
+                        <button type="submit" class="btn-primary" id="videoSubmitBtn">توليد</button>
                     </div>
                 </form>
 
@@ -407,14 +477,135 @@
         const API_BASE_URL = '/api';
 
         // ==========================================
+        // نظام Rate Limiting على الفرونت إند
+        // ==========================================
+        const RateTracker = {
+            image: { count: 0, windowStart: 0, limit: 3, windowMs: 60000 },
+            video: { count: 0, windowStart: 0, limit: 2, windowMs: 60000 },
+
+            canRequest(type) {
+                const tracker = this[type];
+                const now = Date.now();
+
+                // إعادة ضبط إذا انتهت النافذة
+                if (now - tracker.windowStart > tracker.windowMs) {
+                    tracker.count = 0;
+                    tracker.windowStart = now;
+                }
+
+                return tracker.count < tracker.limit;
+            },
+
+            increment(type) {
+                const tracker = this[type];
+                const now = Date.now();
+
+                if (now - tracker.windowStart > tracker.windowMs) {
+                    tracker.count = 1;
+                    tracker.windowStart = now;
+                } else {
+                    tracker.count++;
+                }
+            },
+
+            getRemaining(type) {
+                const tracker = this[type];
+                const now = Date.now();
+                if (now - tracker.windowStart > tracker.windowMs) {
+                    return tracker.limit;
+                }
+                return Math.max(0, tracker.limit - tracker.count);
+            },
+
+            getResetTime(type) {
+                const tracker = this[type];
+                const now = Date.now();
+                const elapsed = now - tracker.windowStart;
+                const remaining = Math.max(0, tracker.windowMs - elapsed);
+                if (remaining === 0) return '';
+                const seconds = Math.ceil(remaining / 1000);
+                return `(${seconds}ث)`;
+            }
+        };
+
+        // تحديث عرض العداد كل ثانية
+        function updateRateDisplay() {
+            document.getElementById('imageCountDisplay').textContent = 
+                RateTracker.image.count || 0;
+            document.getElementById('imageResetTime').textContent = 
+                RateTracker.getResetTime('image');
+            
+            document.getElementById('videoCountDisplay').textContent = 
+                RateTracker.video.count || 0;
+            document.getElementById('videoResetTime').textContent = 
+                RateTracker.getResetTime('video');
+
+            // تعطيل الأزرار عند الوصول للحد
+            const imageBtn = document.getElementById('imageSubmitBtn');
+            const videoBtn = document.getElementById('videoSubmitBtn');
+
+            if (!RateTracker.canRequest('image')) {
+                imageBtn.disabled = true;
+                imageBtn.textContent = `انتظر ${RateTracker.getResetTime('image')}`;
+                document.getElementById('imageSection').classList.add('disabled');
+            } else {
+                imageBtn.disabled = false;
+                imageBtn.textContent = 'توليد';
+                document.getElementById('imageSection').classList.remove('disabled');
+            }
+
+            if (!RateTracker.canRequest('video')) {
+                videoBtn.disabled = true;
+                videoBtn.textContent = `انتظر ${RateTracker.getResetTime('video')}`;
+                document.getElementById('videoSection').classList.add('disabled');
+            } else {
+                videoBtn.disabled = false;
+                videoBtn.textContent = 'توليد';
+                document.getElementById('videoSection').classList.remove('disabled');
+            }
+        }
+
+        setInterval(updateRateDisplay, 1000);
+        updateRateDisplay();
+
+        // ==========================================
         // Image Generation Logic
         // ==========================================
         async function generateImage(e) {
             e.preventDefault();
 
+            // تحقق من Rate Limit على الفرونت إند
+            if (!RateTracker.canRequest('image')) {
+                const resultSection = document.getElementById('imageResult');
+                const statusDiv = document.getElementById('imageStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = `⏳ تم تجاوز الحد. انتظر ${RateTracker.getResetTime('image')}`;
+                statusDiv.className = 'status rate-limited';
+                return;
+            }
+
             const prompt = document.getElementById('imagePrompt').value;
             const mode = document.getElementById('imageMode').value;
             const count = parseInt(document.getElementById('imageCount').value);
+
+            // تحقق من المدخلات على الفرونت إند
+            if (count < 1 || count > 4) {
+                const resultSection = document.getElementById('imageResult');
+                const statusDiv = document.getElementById('imageStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ عدد الصور يجب أن يكون بين 1 و 4.';
+                statusDiv.className = 'status error';
+                return;
+            }
+
+            if (!prompt || prompt.length > 500) {
+                const resultSection = document.getElementById('imageResult');
+                const statusDiv = document.getElementById('imageStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ الوصف مطلوب ولا يتجاوز 500 حرف.';
+                statusDiv.className = 'status error';
+                return;
+            }
 
             const resultSection = document.getElementById('imageResult');
             const statusDiv = document.getElementById('imageStatus');
@@ -424,6 +615,9 @@
             statusDiv.innerHTML = '<span class="spinner"></span> جاري إرسال الطلب...';
             statusDiv.className = 'status processing';
             contentDiv.innerHTML = '';
+
+            RateTracker.increment('image');
+            updateRateDisplay();
 
             try {
                 const payload = { prompt: prompt, mode: mode, n: count };
@@ -436,6 +630,12 @@
 
                 const data = await response.json();
 
+                if (response.status === 429) {
+                    statusDiv.innerHTML = '⏳ تم تجاوز الحد من الخادم. انتظر دقيقة واحدة.';
+                    statusDiv.className = 'status rate-limited';
+                    return;
+                }
+
                 if (data.status === 1 || data.code === 1) {
                     throw new Error(data.message || 'خطأ من السيرفر أثناء توليد الصورة');
                 }
@@ -447,7 +647,7 @@
                 }
 
                 const taskId = data.data?.task_id || data.task_id || data.data?.taskId || data.taskId;
-                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة (Task ID)');
+                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة');
 
                 await pollImageResult(taskId, statusDiv, contentDiv);
             } catch (error) {
@@ -521,11 +721,41 @@
         async function generateVideo(e) {
             e.preventDefault();
 
+            // تحقق من Rate Limit على الفرونت إند
+            if (!RateTracker.canRequest('video')) {
+                const resultSection = document.getElementById('videoResult');
+                const statusDiv = document.getElementById('videoStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = `⏳ تم تجاوز الحد. انتظر ${RateTracker.getResetTime('video')}`;
+                statusDiv.className = 'status rate-limited';
+                return;
+            }
+
             const prompt = document.getElementById('videoPrompt').value;
             const duration = document.getElementById('videoDuration').value;
             const aspect = document.getElementById('videoAspect').value;
             const mode = document.getElementById('videoMode').value;
             const sound = document.getElementById('videoSound').value;
+
+            // تحقق من المدخلات على الفرونت إند
+            const allowedDurations = ['5', '8', '15'];
+            if (!allowedDurations.includes(duration)) {
+                const resultSection = document.getElementById('videoResult');
+                const statusDiv = document.getElementById('videoStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ مدة الفيديو يجب أن تكون 5 أو 8 أو 15 ثانية فقط.';
+                statusDiv.className = 'status error';
+                return;
+            }
+
+            if (!prompt || prompt.length > 500) {
+                const resultSection = document.getElementById('videoResult');
+                const statusDiv = document.getElementById('videoStatus');
+                resultSection.classList.add('show');
+                statusDiv.innerHTML = '✗ الوصف مطلوب ولا يتجاوز 500 حرف.';
+                statusDiv.className = 'status error';
+                return;
+            }
 
             const resultSection = document.getElementById('videoResult');
             const statusDiv = document.getElementById('videoStatus');
@@ -535,6 +765,9 @@
             statusDiv.innerHTML = '<span class="spinner"></span> جاري إرسال الطلب...';
             statusDiv.className = 'status processing';
             contentDiv.innerHTML = '';
+
+            RateTracker.increment('video');
+            updateRateDisplay();
 
             try {
                 const payload = {
@@ -553,6 +786,12 @@
 
                 const data = await response.json();
 
+                if (response.status === 429) {
+                    statusDiv.innerHTML = '⏳ تم تجاوز الحد من الخادم. انتظر دقيقة واحدة.';
+                    statusDiv.className = 'status rate-limited';
+                    return;
+                }
+
                 if (data.status === 1 || data.code === 1) {
                     throw new Error(data.message || 'خطأ من السيرفر أثناء توليد الفيديو');
                 }
@@ -564,7 +803,7 @@
                 }
 
                 const taskId = data.data?.task_id || data.task_id;
-                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة (Task ID)');
+                if (!taskId) throw new Error(data.message || 'لم يتم استلام رقم المهمة');
 
                 await pollVideoResult(taskId, statusDiv, contentDiv);
             } catch (error) {
