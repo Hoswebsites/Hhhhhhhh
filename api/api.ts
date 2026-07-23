@@ -9,7 +9,6 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Endpoints
 const SUPABASE_IMAGE_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/image-generation";
 const SUPABASE_VIDEO_ROUTER_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/video-router";
-// الرابط الجديد الذي اكتشفناه من الكود الخاص بك المخصص للاستعلام
 const SUPABASE_VIDEO_QUERY_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/video-router-query";
 
 // CORS middleware
@@ -31,7 +30,7 @@ async function callSupabaseEdgeFunction(url: string, payload: any, headers: any)
             method: 'POST',
             headers: headers,
             body: JSON.stringify(payload),
-            cache: 'no-store' // منع Vercel من تخزين الرد (Caching)
+            cache: 'no-store' // لمنع الكاش
         });
         
         const contentType = response.headers.get("content-type");
@@ -94,7 +93,7 @@ app.post('/api/query-image', async (req: Request, res: Response) => {
 
         const payload = {
             action: "query",
-            taskId: taskId,
+            task_id: taskId, // <-- تم التصحيح لتكون task_id مثل الفيديو
             project_id: 51
         };
 
@@ -118,7 +117,6 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
             "apikey": SUPABASE_ANON_KEY
         };
 
-        // تم التطابق مع الـ Payload في كود الـ HTML
         const payload = {
             prompt: prompt,
             duration: String(duration),
@@ -145,13 +143,11 @@ app.post('/api/query-video', async (req: Request, res: Response) => {
             "apikey": SUPABASE_ANON_KEY
         };
 
-        // تم التطابق مع الـ Payload في كود الـ HTML المخصص للاستعلام
         const payload = {
             task_id: taskId,
             project_id: 51
         };
 
-        // استخدام الرابط المخصص للاستعلام SUPABASE_VIDEO_QUERY_URL بدلاً من رابط الإنشاء
         const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_QUERY_URL, payload, headers);
         res.json(data);
     } catch (error: any) {
