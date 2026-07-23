@@ -5,50 +5,287 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Media Generator</title>
     <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --input-bg: #0f172a;
+            --input-border: #334155;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; background-color: #f5f5f5; color: #1a1a1a; line-height: 1.6; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-primary); 
+            line-height: 1.6; 
+            min-height: 100vh;
+        }
+
         .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        header { margin-bottom: 40px; border-bottom: 1px solid #e0e0e0; padding-bottom: 30px; text-align: center; }
-        h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.5px; }
-        .subtitle { font-size: 14px; color: #666; font-weight: 400; }
-        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+
+        /* Header & Logo */
+        header { 
+            margin-bottom: 40px; 
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-wrapper {
+            width: 72px;
+            height: 72px;
+            background: var(--accent-gradient);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+            margin-bottom: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-wrapper:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        /* إذا أردت استخدام صورة لوجو جاهزة لديك، استبدل الـ SVG بالسطر التالي: */
+        /* .custom-logo { width: 72px; height: 72px; object-fit: contain; } */
+
+        h1 { 
+            font-size: 32px; 
+            font-weight: 700; 
+            letter-spacing: -0.5px; 
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 400; }
+
+        /* Main Content Layout */
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
-        .section { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 30px; }
-        .section h2 { font-size: 18px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .section-icon { font-size: 20px; }
+
+        .section { 
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border); 
+            border-radius: var(--radius-lg); 
+            padding: 30px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section h2 { 
+            font-size: 20px; 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            color: var(--text-primary);
+        }
+
+        .section-icon { font-size: 22px; }
+
+        .info-box { 
+            background-color: rgba(99, 102, 241, 0.1); 
+            border-right: 4px solid var(--accent-primary); 
+            padding: 12px 16px; 
+            border-radius: 8px; 
+            margin-bottom: 24px; 
+            color: #c7d2fe; 
+            font-size: 13px; 
+            line-height: 1.5; 
+            text-align: center; 
+        }
+
+        /* Forms & Inputs */
         .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #333; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 14px; font-family: inherit; background-color: #fafafa; color: #1a1a1a; transition: border-color 0.2s, background-color 0.2s; }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: #333; background-color: white; }
-        textarea { resize: vertical; min-height: 100px; font-family: inherit; font-size: 14px; }
+
+        label { 
+            display: block; 
+            font-size: 12px; 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 0.8px; 
+        }
+
+        input, textarea, select { 
+            width: 100%; 
+            padding: 12px 14px; 
+            border: 1px solid var(--input-border); 
+            border-radius: var(--radius-md); 
+            font-size: 14px; 
+            font-family: inherit; 
+            background-color: var(--input-bg); 
+            color: var(--text-primary); 
+            transition: all 0.2s ease; 
+        }
+
+        input:focus, textarea:focus, select:focus { 
+            outline: none; 
+            border-color: var(--accent-primary); 
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        textarea { resize: vertical; min-height: 100px; }
+
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
-        .button-group { display: flex; gap: 10px; margin-top: 30px; }
-        button { padding: 10px 20px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; background-color: white; color: #1a1a1a; }
-        .btn-primary { background-color: #1a1a1a; color: white; border-color: #1a1a1a; flex: 1; }
-        .btn-primary:hover { background-color: #333; border-color: #333; }
-        .btn-secondary { flex: 1; }
-        .btn-secondary:hover { background-color: #f0f0f0; border-color: #999; }
-        .result-section { margin-top: 30px; padding: 20px; background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; display: none; }
+
+        /* Buttons */
+        .button-group { display: flex; gap: 12px; margin-top: 24px; }
+
+        button { 
+            padding: 12px 20px; 
+            border-radius: var(--radius-md); 
+            font-size: 13px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            border: none;
+        }
+
+        .btn-primary { 
+            background: var(--accent-gradient); 
+            color: white; 
+            flex: 2; 
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover { 
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary { 
+            background-color: #334155; 
+            color: var(--text-primary); 
+            flex: 1; 
+        }
+
+        .btn-secondary:hover { 
+            background-color: #475569; 
+        }
+
+        /* Results & Status */
+        .result-section { 
+            margin-top: 30px; 
+            padding: 20px; 
+            background-color: var(--input-bg); 
+            border: 1px solid var(--card-border); 
+            border-radius: var(--radius-md); 
+            display: none; 
+        }
+
         .result-section.show { display: block; }
-        .result-section h3 { font-size: 13px; font-weight: 600; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; text-align: center; }
-        .status { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; font-weight: 500; border-right: 3px solid; word-break: break-all; }
-        .status.pending { background-color: #fffbf0; border-right-color: #ff9800; color: #e65100; }
-        .status.success { background-color: #f1f8f4; border-right-color: #4caf50; color: #1b5e20; }
-        .status.error { background-color: #fef5f5; border-right-color: #f44336; color: #c62828; }
-        .status.processing { background-color: #f0f7ff; border-right-color: #2196f3; color: #0d47a1; }
-        .result-image, .result-video { width: 100%; max-width: 100%; border-radius: 6px; margin-top: 15px; border: 1px solid #e0e0e0; }
-        .result-link { display: block; text-align: center; margin-top: 15px; padding: 10px 16px; background-color: #1a1a1a; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; text-transform: uppercase; transition: background-color 0.2s; }
-        .result-link:hover { background-color: #333; }
-        .info-box { background-color: #f0f7ff; border-right: 3px solid #2196f3; padding: 12px; border-radius: 4px; margin-bottom: 20px; color: #0d47a1; font-size: 13px; line-height: 1.5; text-align: center; }
-        .spinner { display: inline-block; position: relative; width: 14px; height: 14px; vertical-align: middle; margin-left: 6px; }
-        .spinner::after { content: " "; display: block; width: 12px; height: 12px; margin: 1px; border-radius: 50%; border: 2px solid #1a1a1a; border-color: #1a1a1a transparent #1a1a1a transparent; animation: spinner 1.2s linear infinite; }
+
+        .result-section h3 { 
+            font-size: 13px; 
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            color: var(--text-secondary); 
+            text-align: center; 
+        }
+
+        .status { 
+            padding: 12px 16px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            font-size: 13px; 
+            font-weight: 500; 
+            border-right: 4px solid; 
+            word-break: break-all; 
+        }
+
+        .status.pending { background-color: rgba(245, 158, 11, 0.1); border-right-color: #f59e0b; color: #fbbf24; }
+        .status.success { background-color: rgba(16, 185, 129, 0.1); border-right-color: #10b981; color: #34d399; }
+        .status.error { background-color: rgba(239, 68, 68, 0.1); border-right-color: #ef4444; color: #f87171; }
+        .status.processing { background-color: rgba(59, 130, 246, 0.1); border-right-color: #3b82f6; color: #60a5fa; }
+
+        .result-image, .result-video { 
+            width: 100%; 
+            max-width: 100%; 
+            border-radius: 8px; 
+            margin-top: 15px; 
+            border: 1px solid var(--card-border); 
+        }
+
+        .result-link { 
+            display: block; 
+            text-align: center; 
+            margin-top: 15px; 
+            padding: 12px 16px; 
+            background: var(--accent-gradient); 
+            color: white; 
+            text-decoration: none; 
+            border-radius: var(--radius-md); 
+            font-weight: 600; 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            transition: opacity 0.2s; 
+        }
+
+        .result-link:hover { opacity: 0.9; }
+
+        .spinner { 
+            display: inline-block; 
+            position: relative; 
+            width: 14px; 
+            height: 14px; 
+            vertical-align: middle; 
+            margin-left: 6px; 
+        }
+
+        .spinner::after { 
+            content: " "; 
+            display: block; 
+            width: 12px; 
+            height: 12px; 
+            margin: 1px; 
+            border-radius: 50%; 
+            border: 2px solid #ffffff; 
+            border-color: #ffffff transparent #ffffff transparent; 
+            animation: spinner 1.2s linear infinite; 
+        }
+
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
+            <!-- اللوغو (SVG حديث احترافي) -->
+            <div class="logo-wrapper">
+                <svg class="logo-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/>
+                </svg>
+            </div>
             <h1>AI Media Generator</h1>
             <p class="subtitle">توليد الصور والفيديوهات بالذكاء الاصطناعي</p>
         </header>
