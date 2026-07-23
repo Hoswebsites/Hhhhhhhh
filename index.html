@@ -5,314 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Media Generator</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f5;
-            color: #1a1a1a;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        header {
-            margin-bottom: 40px;
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 30px;
-        }
-
-        h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: #666;
-            font-weight: 400;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-        }
-
-        @media (max-width: 900px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 30px;
-        }
-
-        .section h2 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-icon {
-            font-size: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #333;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input,
-        textarea,
-        select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d0d0d0;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
-            background-color: #fafafa;
-            color: #1a1a1a;
-            transition: border-color 0.2s, background-color 0.2s;
-        }
-
-        input:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: #333;
-            background-color: white;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            font-family: 'Menlo', 'Monaco', monospace;
-            font-size: 13px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        @media (max-width: 600px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: 1px solid #d0d0d0;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background-color: white;
-            color: #1a1a1a;
-        }
-
-        .btn-primary {
-            background-color: #1a1a1a;
-            color: white;
-            border-color: #1a1a1a;
-            flex: 1;
-        }
-
-        .btn-primary:hover {
-            background-color: #333;
-            border-color: #333;
-        }
-
-        .btn-primary:active {
-            background-color: #000;
-        }
-
-        .btn-primary:disabled {
-            background-color: #ccc;
-            border-color: #ccc;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        .btn-secondary {
-            flex: 1;
-        }
-
-        .btn-secondary:hover {
-            background-color: #f0f0f0;
-            border-color: #999;
-        }
-
-        .result-section {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #fafafa;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            display: none;
-        }
-
-        .result-section.show {
-            display: block;
-        }
-
-        .result-section h3 {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #666;
-        }
-
-        .status {
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 13px;
-            font-weight: 500;
-            border-left: 3px solid;
-            word-break: break-all;
-        }
-
-        .status.pending {
-            background-color: #fffbf0;
-            border-left-color: #ff9800;
-            color: #e65100;
-        }
-
-        .status.success {
-            background-color: #f1f8f4;
-            border-left-color: #4caf50;
-            color: #1b5e20;
-        }
-
-        .status.error {
-            background-color: #fef5f5;
-            border-left-color: #f44336;
-            color: #c62828;
-        }
-
-        .status.processing {
-            background-color: #f0f7ff;
-            border-left-color: #2196f3;
-            color: #0d47a1;
-        }
-
-        .result-image,
-        .result-video {
-            width: 100%;
-            max-width: 100%;
-            border-radius: 6px;
-            margin-top: 15px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .result-link {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 16px;
-            background-color: #1a1a1a;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: background-color 0.2s;
-        }
-
-        .result-link:hover {
-            background-color: #333;
-        }
-
-        .info-box {
-            background-color: #f0f7ff;
-            border-left: 3px solid #2196f3;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            color: #0d47a1;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .spinner {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            vertical-align: middle;
-            margin-right: 6px;
-        }
-
-        .spinner::after {
-            content: " ";
-            display: block;
-            width: 12px;
-            height: 12px;
-            margin: 1px;
-            border-radius: 50%;
-            border: 2px solid #1a1a1a;
-            border-color: #1a1a1a transparent #1a1a1a transparent;
-            animation: spinner 1.2s linear infinite;
-        }
-
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        /* (نفس تنسيقات الـ CSS السابقة تماماً لحفظ التصميم) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; background-color: #f5f5f5; color: #1a1a1a; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        header { margin-bottom: 40px; border-bottom: 1px solid #e0e0e0; padding-bottom: 30px; text-align: center; }
+        h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .subtitle { font-size: 14px; color: #666; font-weight: 400; }
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+        .section { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 30px; }
+        .section h2 { font-size: 18px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .section-icon { font-size: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #333; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 14px; font-family: inherit; background-color: #fafafa; color: #1a1a1a; transition: border-color 0.2s, background-color 0.2s; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #333; background-color: white; }
+        textarea { resize: vertical; min-height: 100px; font-family: inherit; font-size: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .button-group { display: flex; gap: 10px; margin-top: 30px; }
+        button { padding: 10px 20px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; background-color: white; color: #1a1a1a; }
+        .btn-primary { background-color: #1a1a1a; color: white; border-color: #1a1a1a; flex: 1; }
+        .btn-primary:hover { background-color: #333; border-color: #333; }
+        .btn-secondary { flex: 1; }
+        .btn-secondary:hover { background-color: #f0f0f0; border-color: #999; }
+        .result-section { margin-top: 30px; padding: 20px; background-color: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; display: none; }
+        .result-section.show { display: block; }
+        .result-section h3 { font-size: 13px; font-weight: 600; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; text-align: center; }
+        .status { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; font-weight: 500; border-right: 3px solid; word-break: break-all; }
+        .status.pending { background-color: #fffbf0; border-right-color: #ff9800; color: #e65100; }
+        .status.success { background-color: #f1f8f4; border-right-color: #4caf50; color: #1b5e20; }
+        .status.error { background-color: #fef5f5; border-right-color: #f44336; color: #c62828; }
+        .status.processing { background-color: #f0f7ff; border-right-color: #2196f3; color: #0d47a1; }
+        .result-image, .result-video { width: 100%; max-width: 100%; border-radius: 6px; margin-top: 15px; border: 1px solid #e0e0e0; }
+        .result-link { display: block; text-align: center; margin-top: 15px; padding: 10px 16px; background-color: #1a1a1a; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; text-transform: uppercase; transition: background-color 0.2s; }
+        .result-link:hover { background-color: #333; }
+        .info-box { background-color: #f0f7ff; border-right: 3px solid #2196f3; padding: 12px; border-radius: 4px; margin-bottom: 20px; color: #0d47a1; font-size: 13px; line-height: 1.5; text-align: center; }
+        .spinner { display: inline-block; position: relative; width: 14px; height: 14px; vertical-align: middle; margin-left: 6px; }
+        .spinner::after { content: " "; display: block; width: 12px; height: 12px; margin: 1px; border-radius: 50%; border: 2px solid #1a1a1a; border-color: #1a1a1a transparent #1a1a1a transparent; animation: spinner 1.2s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>AI Media Generator</h1>
-            <p class="subtitle">Generate images and videos with artificial intelligence</p>
+            <p class="subtitle">توليد الصور والفيديوهات بالذكاء الاصطناعي</p>
         </header>
 
         <div class="main-content">
-            <!-- Images Section -->
+            <!-- قسم الصور -->
             <div class="section">
                 <h2>
                     <span class="section-icon">🖼️</span>
@@ -320,21 +63,21 @@
                 </h2>
 
                 <div class="info-box">
-                    Describe the image you want to generate. The AI will create it based on your description.
+                    اكتب وصفاً للصورة التي تريد توليدها وسيقوم الذكاء الاصطناعي برسمها.
                 </div>
 
                 <form onsubmit="generateImage(event)">
                     <div class="form-group">
                         <label for="imagePrompt">Description</label>
-                        <textarea id="imagePrompt" placeholder="e.g., A serene mountain landscape at sunrise with golden light" required></textarea>
+                        <textarea id="imagePrompt" placeholder="مثال: قطة تلعب في حديقة خضراء وقت الغروب" required></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="imageMode">Quality</label>
                             <select id="imageMode">
-                                <option value="pro">Professional</option>
                                 <option value="lite">Standard</option>
+                                <option value="pro">Professional</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -344,8 +87,8 @@
                     </div>
 
                     <div class="button-group">
-                        <button type="submit" class="btn-primary">Generate</button>
                         <button type="reset" class="btn-secondary">Clear</button>
+                        <button type="submit" class="btn-primary">Generate</button>
                     </div>
                 </form>
 
@@ -356,7 +99,7 @@
                 </div>
             </div>
 
-            <!-- Videos Section -->
+            <!-- قسم الفيديو -->
             <div class="section">
                 <h2>
                     <span class="section-icon">🎬</span>
@@ -364,13 +107,13 @@
                 </h2>
 
                 <div class="info-box">
-                    Describe the video you want to generate. Specify duration, aspect ratio, and other parameters.
+                    اكتب وصفاً لتوليد فيديو حركي رائع بالذكاء الاصطناعي.
                 </div>
 
                 <form onsubmit="generateVideo(event)">
                     <div class="form-group">
                         <label for="videoPrompt">Description</label>
-                        <textarea id="videoPrompt" placeholder="e.g., Ocean waves crashing on a sandy beach at sunset, cinematic" required></textarea>
+                        <textarea id="videoPrompt" placeholder="مثال: أمواج البحر تضرب الشاطئ الرملي" required></textarea>
                     </div>
 
                     <div class="form-row">
@@ -381,8 +124,8 @@
                         <div class="form-group">
                             <label for="videoAspect">Aspect Ratio</label>
                             <select id="videoAspect">
-                                <option value="16:9">16:9 (Widescreen)</option>
                                 <option value="9:16">9:16 (Portrait)</option>
+                                <option value="16:9">16:9 (Widescreen)</option>
                                 <option value="1:1">1:1 (Square)</option>
                                 <option value="4:3">4:3 (Standard)</option>
                             </select>
@@ -407,8 +150,8 @@
                     </div>
 
                     <div class="button-group">
-                        <button type="submit" class="btn-primary">Generate</button>
                         <button type="reset" class="btn-secondary">Clear</button>
+                        <button type="submit" class="btn-primary">Generate</button>
                     </div>
                 </form>
 
@@ -422,11 +165,10 @@
     </div>
 
     <script>
-        // إعداد الرابط الأساسي للـ API المرفوع على Vercel
         const API_BASE_URL = '/api';
 
         // ==========================================
-        // Image Generation Logic
+        // Image Generation Logic (تم الإصلاح ليتطابق مع الفيديو)
         // ==========================================
         async function generateImage(e) {
             e.preventDefault();
@@ -440,7 +182,7 @@
             const contentDiv = document.getElementById('imageContent');
 
             resultSection.classList.add('show');
-            statusDiv.innerHTML = '<span class="spinner"></span> Generating image...';
+            statusDiv.innerHTML = '<span class="spinner"></span> جاري إرسال الطلب...';
             statusDiv.className = 'status processing';
             contentDiv.innerHTML = '';
 
@@ -454,26 +196,33 @@
                 });
 
                 const data = await response.json();
-                const taskId = data.data?.taskId || data.taskId;
 
+                // 1. التحقق لو الصورة رجعت فوراً
+                const instantImageUrl = data.data?.task_result?.images?.[0]?.url || data.task_result?.images?.[0]?.url;
+                if (instantImageUrl) {
+                    showImageSuccess(instantImageUrl, statusDiv, contentDiv);
+                    return;
+                }
+
+                // 2. استخراج ID الصورة
+                const taskId = data.data?.task_id || data.task_id || data.data?.taskId || data.taskId;
                 if (!taskId) throw new Error(data.message || 'No task ID received from server');
 
                 await pollImageResult(taskId, statusDiv, contentDiv);
             } catch (error) {
-                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.innerHTML = `✗ خطأ: ${error.message}`;
                 statusDiv.className = 'status error';
             }
         }
 
         async function pollImageResult(taskId, statusDiv, contentDiv, attempts = 0) {
             if (attempts > 60) {
-                statusDiv.innerHTML = '⏱ Timeout. Image may still be processing.';
+                statusDiv.innerHTML = '⏱ انتهت مهلة الانتظار. السيرفر مزدحم حالياً.';
                 statusDiv.className = 'status pending';
                 return;
             }
 
             try {
-                // منع كاش المتصفح بإضافة الوقت الحالي للرابط
                 const response = await fetch(`${API_BASE_URL}/query-image?t=${Date.now()}`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json" },
@@ -481,32 +230,46 @@
                 });
 
                 const data = await response.json();
-                const status = (data.data?.status || '').toLowerCase();
+                
+                // قراءة الحالة بنفس الطريقة الذكية الخاصة بالفيديو
+                const status = (data.data?.task_status || data.task_status || data.data?.status || data.status || '').toLowerCase();
 
-                if (status === 'success' || status === 'succeed') {
-                    const imageUrl = data.data?.imageUrl;
+                if (status === 'succeed' || status === 'success') {
+                    // استخراج الرابط من المسارات المتعددة المتوقعة
+                    const imageUrl = data.data?.task_result?.images?.[0]?.url || 
+                                     data.task_result?.images?.[0]?.url || 
+                                     data.data?.images?.[0]?.url || 
+                                     data.data?.imageUrl;
+                    
                     if (imageUrl) {
-                        statusDiv.innerHTML = '✓ Image generated successfully';
-                        statusDiv.className = 'status success';
-                        contentDiv.innerHTML = `
-                            <img src="${imageUrl}" alt="Generated Image" class="result-image">
-                            <br>
-                            <a href="${imageUrl}" target="_blank" class="result-link">Download</a>
-                        `;
+                        showImageSuccess(imageUrl, statusDiv, contentDiv);
+                    } else {
+                        statusDiv.innerHTML = '✓ مكتمل ولكن لم يتم العثور على رابط الصورة';
+                        statusDiv.className = 'status error';
                     }
                     return;
                 } else if (status === 'failed' || status === 'error') {
-                    statusDiv.innerHTML = '✗ Generation failed';
+                    statusDiv.innerHTML = '✗ فشل إنشاء الصورة من السيرفر';
                     statusDiv.className = 'status error';
                 } else {
-                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/60)`;
+                    // التحقق كل 5 ثواني
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/60) - ${status || 'starting'}`;
                     statusDiv.className = 'status processing';
-                    setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 3000);
+                    setTimeout(() => pollImageResult(taskId, statusDiv, contentDiv, attempts + 1), 5000); 
                 }
             } catch (error) {
-                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.innerHTML = `✗ خطأ في الاستعلام: ${error.message}`;
                 statusDiv.className = 'status error';
             }
+        }
+
+        function showImageSuccess(url, statusDiv, contentDiv) {
+            statusDiv.innerHTML = '✓ تم إنشاء الصورة بنجاح';
+            statusDiv.className = 'status success';
+            contentDiv.innerHTML = `
+                <img src="${url}" alt="Generated Image" class="result-image" style="width: 100%; border-radius: 8px;">
+                <a href="${url}" target="_blank" class="result-link">تحميل الصورة</a>
+            `;
         }
 
         // ==========================================
@@ -526,7 +289,7 @@
             const contentDiv = document.getElementById('videoContent');
 
             resultSection.classList.add('show');
-            statusDiv.innerHTML = '<span class="spinner"></span> Generating video...';
+            statusDiv.innerHTML = '<span class="spinner"></span> جاري إرسال الطلب...';
             statusDiv.className = 'status processing';
             contentDiv.innerHTML = '';
 
@@ -547,33 +310,18 @@
 
                 const data = await response.json();
 
-                // التحقق مما إذا كان الفيديو متاحاً فوراً (بدون انتظار)
                 const instantVideoUrl = data.data?.task_result?.videos?.[0]?.url;
                 if (instantVideoUrl) {
-                    statusDiv.innerHTML = '✓ تم إنشاء الفيديو بنجاح (Instant)';
-                    statusDiv.className = 'status success';
-                    contentDiv.innerHTML = `
-                        <video controls autoplay loop class="result-video" style="max-height: 400px; width: 100%;">
-                            <source src="${instantVideoUrl}" type="video/mp4">
-                            متصفحك لا يدعم تشغيل الفيديو
-                        </video>
-                        <br>
-                        <a href="${instantVideoUrl}" target="_blank" class="result-link">تحميل الفيديو</a>
-                    `;
+                    showVideoSuccess(instantVideoUrl, statusDiv, contentDiv);
                     return;
                 }
 
-                // استخراج معرف المهمة لبدء المتابعة
                 const taskId = data.data?.task_id || data.task_id;
-                
-                if (!taskId) {
-                    throw new Error(data.message || 'لم يتم استلام task_id من السيرفر');
-                }
+                if (!taskId) throw new Error(data.message || 'لم يتم استلام task_id من السيرفر');
 
                 await pollVideoResult(taskId, statusDiv, contentDiv);
-
             } catch (error) {
-                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.innerHTML = `✗ خطأ: ${error.message}`;
                 statusDiv.className = 'status error';
             }
         }
@@ -586,7 +334,6 @@
             }
 
             try {
-                // منع كاش المتصفح لضمان الحصول على بيانات جديدة دائمًا
                 const response = await fetch(`${API_BASE_URL}/query-video?t=${Date.now()}`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json" },
@@ -594,25 +341,13 @@
                 });
 
                 const data = await response.json();
-                
-                // قراءة الحالة الصحيحة
                 const status = (data.data?.task_status || data.task_status || '').toLowerCase();
 
                 if (status === 'succeed' || status === 'success') {
-                    // استخراج رابط الفيديو من المسار الصحيح
                     const videoUrl = data.data?.task_result?.videos?.[0]?.url;
                     
                     if (videoUrl) {
-                        statusDiv.innerHTML = '✓ تم إنشاء الفيديو بنجاح';
-                        statusDiv.className = 'status success';
-                        contentDiv.innerHTML = `
-                            <video controls autoplay loop class="result-video" style="max-height: 400px; width: 100%;">
-                                <source src="${videoUrl}" type="video/mp4">
-                                متصفحك لا يدعم تشغيل الفيديو
-                            </video>
-                            <br>
-                            <a href="${videoUrl}" target="_blank" class="result-link">تحميل الفيديو</a>
-                        `;
+                        showVideoSuccess(videoUrl, statusDiv, contentDiv);
                     } else {
                         statusDiv.innerHTML = '✓ مكتمل ولكن لم يتم العثور على رابط الفيديو';
                         statusDiv.className = 'status error';
@@ -622,15 +357,26 @@
                     statusDiv.innerHTML = '✗ فشل إنشاء الفيديو';
                     statusDiv.className = 'status error';
                 } else {
-                    // إعادة المحاولة كل 4 ثوانٍ مع تحديث عداد المحاولات والحالة
-                    statusDiv.innerHTML = `<span class="spinner"></span> جاري المعالجة... المحاولة (${attempts + 1}/80) - الحالة: ${status || 'starting'}`;
+                    // التحقق كل 5 ثواني
+                    statusDiv.innerHTML = `<span class="spinner"></span> Processing... (${attempts + 1}/80) - ${status || 'starting'}`;
                     statusDiv.className = 'status processing';
-                    setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 4000);
+                    setTimeout(() => pollVideoResult(taskId, statusDiv, contentDiv, attempts + 1), 5000);
                 }
             } catch (error) {
-                statusDiv.innerHTML = `✗ Error: ${error.message}`;
+                statusDiv.innerHTML = `✗ خطأ في الاستعلام: ${error.message}`;
                 statusDiv.className = 'status error';
             }
+        }
+
+        function showVideoSuccess(url, statusDiv, contentDiv) {
+            statusDiv.innerHTML = '✓ تم إنشاء الفيديو بنجاح';
+            statusDiv.className = 'status success';
+            contentDiv.innerHTML = `
+                <video controls autoplay loop class="result-video" style="max-height: 400px; width: 100%;">
+                    <source src="${url}" type="video/mp4">
+                </video>
+                <a href="${url}" target="_blank" class="result-link">تحميل الفيديو</a>
+            `;
         }
     </script>
 </body>
