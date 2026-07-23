@@ -11,11 +11,30 @@ const SUPABASE_IMAGE_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v
 const SUPABASE_VIDEO_ROUTER_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/video-router";
 const SUPABASE_VIDEO_QUERY_URL = "https://anyzgczlrboyrastsbmf.supabase.co/functions/v1/video-router-query";
 
-// CORS middleware
+// ----------------------------------------
+// نظام الحماية الصارم (Strict CORS & Origin Check)
+// ----------------------------------------
+const ALLOWED_ORIGIN = "https://hostools.vercel.app";
+
 app.use((req: Request, res: Response, next: NextFunction) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    // جلب مصدر الطلب
+    const origin = req.headers.origin;
+
+    // التحقق: إذا لم يكن هناك مصدر، أو المصدر لا يطابق الدومين المسموح به تماماً، يتم حظر الطلب.
+    if (origin !== ALLOWED_ORIGIN) {
+        console.warn(`Blocked unauthorized request from origin: ${origin}`);
+        return res.status(403).json({ 
+            status: 1, 
+            message: "Forbidden: غير مصرح لك بالوصول إلى هذا الخادم. يسمح بالوصول من الدومين الرسمي فقط." 
+        });
+    }
+
+    // إذا كان المصدر صحيحاً، يتم إضافة الهيدرز للسماح له
+    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS'); // نكتفي بـ POST و OPTIONS لأننا لا نستخدم GET
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey');
+    
+    // التعامل مع طلبات OPTIONS الخاصة بالمتصفح
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
@@ -68,7 +87,7 @@ app.post('/api/generate-image', async (req: Request, res: Response) => {
             prompt: prompt,
             mode: mode,
             n: n,
-            project_id: "slave-51"
+            project_id: "slave-51" // لاحظ قيمة الـ project_id هنا
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_IMAGE_URL, payload, headers);
@@ -93,8 +112,8 @@ app.post('/api/query-image', async (req: Request, res: Response) => {
 
         const payload = {
             action: "query",
-            task_id: taskId, // <-- تم التصحيح لتكون task_id مثل الفيديو
-            project_id: 51
+            task_id: taskId,
+            project_id: "slave-51" // <-- [تم التصحيح هنا] كانت 51، أصبحت متطابقة مع الإنشاء
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_IMAGE_URL, payload, headers);
@@ -145,7 +164,7 @@ app.post('/api/query-video', async (req: Request, res: Response) => {
 
         const payload = {
             task_id: taskId,
-            project_id: 51
+            project_id: "slave-51" // <-- [تم التصحيح هنا] كانت 51، أصبحت متطابقة مع الإنشاء
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_QUERY_URL, payload, headers);
