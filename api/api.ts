@@ -121,17 +121,26 @@ function formatAndSanitizeResponse(data: any): any {
     if (cleanData.data) { for (const field of fieldsToRemove) { delete cleanData.data[field]; } }
     if (cleanData.data?.data) { for (const field of fieldsToRemove) { delete cleanData.data.data[field]; } }
 
-    // 2. استخراج صورة Base64 وتجهيزها للـ Frontend (الحل للمشكلة المكتشفة)
+    // 2. استخراج صورة Base64 وتجهيزها للـ Frontend (الإصلاح الموجه)
     try {
-        // البحث عن Base64 في المسار الذي ذكرته
-        const base64Image = cleanData?.data?.result?.content?.[0]?.image?.data;
+        // البحث عن النص الذي يحتوي على الصورة في المسار الفعلي
+        const contentText = cleanData?.data?.result?.candidates?.[0]?.content?.parts?.[0]?.text;
         
-        if (base64Image) {
-            // إضافة المتغير image_url في الجذر لسهولة الوصول من الـ Frontend
-            cleanData.image_url = `data:image/jpeg;base64,${base64Image}`;
-            cleanData.is_ready = true; // لتسهيل الفحص في الواجهة
+        if (contentText && contentText.includes("base64,")) {
+            // استخراج رابط الـ Base64 باستخدام Regex
+            const base64Match = contentText.match(/data:image\/[a-zA-Z]+;base64,[^)]+/);
+            if (base64Match) {
+                cleanData.image_url = base64Match[0];
+                cleanData.is_ready = true;
+            }
         } 
-        // في حال تم إرجاع URL عادي في المستقبل
+        // دعم المسار القديم إذا وجد
+        else if (cleanData?.data?.result?.content?.[0]?.image?.data) {
+            const base64Image = cleanData.data.result.content[0].image.data;
+            cleanData.image_url = `data:image/jpeg;base64,${base64Image}`;
+            cleanData.is_ready = true;
+        }
+        // في حال تم إرجاع URL عادي
         else if (cleanData?.data?.url || cleanData?.url) {
             cleanData.image_url = cleanData?.data?.url || cleanData?.url;
             cleanData.is_ready = true;
@@ -218,7 +227,6 @@ app.post('/api/query-image', async (req: Request, res: Response) => {
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_IMAGE_URL, payload);
-        // الدالة formatAndSanitizeResponse ستقوم باكتشاف الـ Base64 هنا وإرجاعه كـ URL
         res.json(formatAndSanitizeResponse(data));
     } catch (error: any) {
         console.error('Image query error:', error.message);
@@ -265,7 +273,7 @@ app.post('/api/generate-video', async (req: Request, res: Response) => {
         };
 
         const data = await callSupabaseEdgeFunction(SUPABASE_VIDEO_ROUTER_URL, payload);
-        res.json(formatAndSanitizeResponse(data)); // نمررها لنفس الدالة لتنظيف الـ Headers
+        res.json(formatAndSanitizeResponse(data)); 
     } catch (error: any) {
         console.error('Video generation error:', error.message);
         res.status(500).json({ status: 1, message: 'خطأ في الخادم.' });
