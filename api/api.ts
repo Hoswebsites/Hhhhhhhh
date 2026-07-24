@@ -121,29 +121,35 @@ function formatAndSanitizeResponse(data: any): any {
     if (cleanData.data) { for (const field of fieldsToRemove) { delete cleanData.data[field]; } }
     if (cleanData.data?.data) { for (const field of fieldsToRemove) { delete cleanData.data.data[field]; } }
 
-    // 2. استخراج صورة Base64 وتجهيزها للـ Frontend (الإصلاح الموجه)
+    // 2. استخراج صورة Base64 وتجهيزها للـ Frontend
     try {
-        // البحث عن النص الذي يحتوي على الصورة في المسار الفعلي
+        // المسار الفعلي المكتشف من التحليل: data.result.candidates[0].content.parts[0].text
         const contentText = cleanData?.data?.result?.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (contentText && contentText.includes("base64,")) {
             // استخراج رابط الـ Base64 باستخدام Regex
             const base64Match = contentText.match(/data:image\/[a-zA-Z]+;base64,[^)]+/);
             if (base64Match) {
-                cleanData.image_url = base64Match[0];
-                cleanData.is_ready = true;
+                const imageUrl = base64Match[0];
+                // نقوم بوضع الرابط في الأماكن التي يبحث فيها الـ Frontend
+                if (!cleanData.data) cleanData.data = {};
+                if (!cleanData.data.task_result) cleanData.data.task_result = {};
+                if (!cleanData.data.task_result.images) cleanData.data.task_result.images = [];
+                
+                cleanData.data.task_result.images[0] = { url: imageUrl };
+                cleanData.image_url = imageUrl; // للمستقبل
             }
         } 
         // دعم المسار القديم إذا وجد
         else if (cleanData?.data?.result?.content?.[0]?.image?.data) {
             const base64Image = cleanData.data.result.content[0].image.data;
-            cleanData.image_url = `data:image/jpeg;base64,${base64Image}`;
-            cleanData.is_ready = true;
-        }
-        // في حال تم إرجاع URL عادي
-        else if (cleanData?.data?.url || cleanData?.url) {
-            cleanData.image_url = cleanData?.data?.url || cleanData?.url;
-            cleanData.is_ready = true;
+            const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+            
+            if (!cleanData.data) cleanData.data = {};
+            if (!cleanData.data.task_result) cleanData.data.task_result = {};
+            if (!cleanData.data.task_result.images) cleanData.data.task_result.images = [];
+            
+            cleanData.data.task_result.images[0] = { url: imageUrl };
         }
     } catch (e) {
         console.error("Error formatting image response:", e);
